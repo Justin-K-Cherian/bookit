@@ -1,10 +1,122 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>BookIt</title>
+  <title>BookIt Login</title>
+
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+
+      /* Background image */
+      background-image: url("Y:\BOOKIT\images\bg.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+
+      /* Center content */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      font-family: Arial, sans-serif;
+    }
+
+    .login-box {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 30px;
+      border-radius: 12px;
+    }
+
+    input {
+      width: 250px;
+      padding: 10px;
+      margin: 10px 0;
+      display: block;
+    }
+
+    button {
+      padding: 10px 20px;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
 </head>
+
+
 <body>
-  <h1>BookIt Website is Live ✅</h1>
-  <p>Login page coming soon</p>
+ <div class="login-box">
+  <h2>BookIt College Login</h2>
+
+  <input type="email" id="email" placeholder="College Email">
+  <input type="password" id="password" placeholder="Password">
+
+  <button onclick="login()">Login</button>
+</div>
+
+
+ <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* 🔥 Firebase Configuration */
+const firebaseConfig = {
+  apiKey: "AIzaSyDYD768C9UY7PHq8BrQLN8paau3LmXAnFs",
+  authDomain: "bookit-56e35.firebaseapp.com",
+  projectId: "bookit-56e35",
+  storageBucket: "bookit-56e35.firebasestorage.app",
+  messagingSenderId: "813441391899",
+  appId: "1:813441391899:web:d5bf9d33c6b81c983a87be"
+};
+
+/* 🔥 Initialize Firebase */
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* 🔐 LOGIN FUNCTION */
+window.login = async function () {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!email || !password) {
+    alert("Please enter email and password");
+    return;
+  }
+
+  try {
+    // 🔐 Sign in user
+    const { user } = await signInWithEmailAndPassword(auth, email, password);
+
+    // 🔎 Fetch role from Firestore
+    const userRef = doc(db, "users", user.uid);
+    const snap = await getDoc(userRef);
+
+    if (!snap.exists()) {
+      alert("User data not found");
+      return;
+    }
+
+    const { role } = snap.data();
+
+    // 🚦 FLASK ROUTE REDIRECTS (FINAL)
+    if (role === "admin") {
+      window.location.replace("/admin");
+    } 
+    else if (role === "user") {
+      window.location.replace("/user");
+    } 
+    else {
+      alert("Role not assigned");
+    }
+
+  } catch (error) {
+    alert("Login failed: " + error.message);
+  }
+};
+</script>
+
 </body>
 </html>
