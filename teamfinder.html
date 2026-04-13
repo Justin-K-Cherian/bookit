@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BookIt - FindMyTeam</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Outfit:wght@200;300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary:      #19304D;
+  --primary-mid:  #1f3c5e;
+  --primary-lt:   #274d78;
+  --primary-deep: #0f1f30;
+  --card-bg:      rgba(255,255,255,0.04);
+  --card-bg-solid: #152840;
+  --card-border:  rgba(255,255,255,0.09);
+  --head-bg:      #162c47;
+  --gold:         #c9a96e;
+  --gold-lt:      #e8cfa0;
+  --gold-deep:    #a07840;
+  --gold-dim:     rgba(201,169,110,0.13);
+  --gold-border:  rgba(201,169,110,0.30);
+  --white:        #ffffff;
+  --ink:          #0f1f30;
+  --on-card:      rgba(255,255,255,0.88);
+  --on-card-mid:  rgba(255,255,255,0.50);
+  --on-card-soft: rgba(255,255,255,0.26);
+  --glass:        rgba(255,255,255,0.05);
+  --glass-border: rgba(255,255,255,0.09);
+  --border:       rgba(255,255,255,0.09);
+  --border-mid:   rgba(255,255,255,0.14);
+
+  /* card inner surfaces */
+  --ci-bg:        rgba(255,255,255,0.045);
+  --ci-border:    rgba(255,255,255,0.08);
+  --ci-text:      rgba(255,255,255,0.60);
+  --ci-text-soft: rgba(255,255,255,0.35);
+  --input-bg:     #f4f7fb;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Outfit',sans-serif;
+  background:#19304D;
+  min-height:100vh;
+  color:var(--on-card);
+  overflow-x:hidden;
+  position:relative;
+}
+
+/* ─── BACKGROUND ─── */
+.bg { position:fixed; inset:0; z-index:0; overflow:hidden; }
+.bg-depth {
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 90% 80% at 0% 0%,   rgba(31,60,94,0.70) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 100% 100%, rgba(10,18,28,0.80) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 55% at 50% 50%,  rgba(25,48,77,0.20) 0%, transparent 70%);
+}
+.stripes { position:absolute; inset:-60% -20%; width:140%; height:220%; transform:rotate(-28deg); }
+.stripe  { position:absolute; top:0; bottom:0; }
+.s1 { left:14%;  width:7%;  background:rgba(255,255,255,0.038); }
+.s2 { left:25%;  width:11%; background:rgba(255,255,255,0.028); }
+.s3 { left:41%;  width:5%;  background:rgba(255,255,255,0.048); }
+.s4 { left:55%;  width:2%;  background:rgba(255,255,255,0.025); }
+.s5 { left:63%;  width:6%;  background:rgba(255,255,255,0.020); }
+.se {
+  position:absolute; top:0; bottom:0; left:22%; width:1.5px;
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,0.22) 15%,rgba(255,255,255,0.28) 40%,rgba(255,255,255,0.22) 65%,transparent);
+}
+.bg-hlines {
+  position:absolute; inset:0;
+  background-image:linear-gradient(rgba(255,255,255,0.055) 1px,transparent 1px);
+  background-size:100% 180px; background-position:0 90px;
+}
+.bg-grain {
+  position:absolute; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size:220px; opacity:0.55; pointer-events:none;
+}
+.bg-vignette {
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse 110% 110% at 50% 50%,transparent 45%,rgba(6,12,22,0.65) 100%);
+}
+
+.top-stripe { position:fixed;top:0;left:0;right:0;z-index:300;height:2px;
+  background:linear-gradient(90deg,var(--gold-deep),var(--gold),var(--gold-lt),var(--gold)); }
+.bot-strip { position:fixed;bottom:0;left:0;right:0;z-index:300;height:2px;
+  background:linear-gradient(90deg,var(--primary-lt),var(--primary-mid),var(--gold-deep)); }
+
+/* ─── PAGE CONTENT ─── */
+.page-content { position:relative; z-index:10; min-height:100vh; padding-top:2px; }
+
+/* ─── TOPBAR ─── */
+.topbar {
+  background:rgba(15,31,48,0.88);
+  backdrop-filter:blur(20px);
+  padding:0 40px;
+  height:66px;
+  display:flex; justify-content:space-between; align-items:center;
+  position:sticky; top:2px; z-index:100;
+  border-bottom:1px solid rgba(201,169,110,0.12);
+  box-shadow:0 4px 32px rgba(0,0,0,0.28);
+}
+.topbar::before { content:''; position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--gold),var(--gold-deep)); }
+.topbar-left { display:flex; align-items:center; gap:32px; }
+.logo { display:flex; flex-direction:column; line-height:1; gap:2px; }
+.logo-line1 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:28px; font-weight:400; color:var(--gold);
+  letter-spacing:1px;
+}
+.logo-line1 em { font-style:italic; color:var(--gold-lt); }
+.logo-line2 {
+  font-family:'DM Mono',monospace;
+  font-size:9px; color:var(--on-card-soft);
+  letter-spacing:4px; text-transform:uppercase;
+}
+.topbar-right { display:flex; align-items:center; gap:12px; }
+
+/* ─── TOPBAR BACK BUTTON ─── */
+.topbar-back {
+  display:flex; align-items:center; gap:8px;
+  background:transparent;
+  border:1px solid rgba(201,169,110,0.28);
+  padding:9px 18px; cursor:pointer;
+  font-family:'DM Mono',monospace; font-size:9px; font-weight:500;
+  letter-spacing:2.5px; text-transform:uppercase;
+  color:var(--gold); transition:all .28s ease;
+  position:relative; overflow:hidden;
+}
+.topbar-back::before { content:''; position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(201,169,110,0.14),transparent);
+  transform:translateX(-100%); transition:transform .4s ease; }
+.topbar-back:hover::before { transform:translateX(100%); }
+.topbar-back:hover { background:rgba(201,169,110,0.14); border-color:rgba(201,169,110,0.45); color:var(--gold-lt); }
+.topbar-back-arrow { font-size:14px; transition:transform .22s; display:inline-block; }
+.topbar-back:hover .topbar-back-arrow { transform:translateX(-3px); }
+
+.topbar-divider { width:1px; height:28px; background:rgba(255,255,255,0.10); flex-shrink:0; }
+
+/* ─── NOTIFICATION BELL ─── */
+.notif-bell {
+  position:relative; width:42px; height:42px;
+  display:flex; align-items:center; justify-content:center; font-size:17px;
+  background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.10);
+  cursor:pointer; transition:all .25s;
+}
+.notif-bell:hover { background:rgba(201,169,110,0.12); border-color:rgba(201,169,110,0.28); }
+.notif-badge {
+  position:absolute; top:4px; right:4px;
+  background:var(--gold); color:var(--ink);
+  font-size:9px; font-weight:700;
+  min-width:16px; height:16px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center; padding:0 3px;
+  font-family:'DM Mono',monospace;
+}
+
+/* ─── NOTIFICATION DROPDOWN ─── */
+.notif-dropdown {
+  position:fixed; top:82px; right:40px; width:360px; max-height:480px;
+  background:var(--head-bg);
+  border:1px solid rgba(201,169,110,0.18);
+  box-shadow:0 2px 0 var(--gold),0 20px 60px rgba(0,0,0,0.55);
+  overflow:hidden; display:none; z-index:500;
+}
+.notif-dropdown.show { display:block; animation:dropIn .2s ease-out; }
+@keyframes dropIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+.notif-header {
+  padding:14px 20px; border-bottom:1px solid rgba(201,169,110,0.15);
+  font-family:'DM Mono',monospace; font-weight:600; font-size:9px;
+  display:flex; justify-content:space-between; color:var(--on-card-mid);
+  letter-spacing:2.5px; text-transform:uppercase;
+  background:rgba(0,0,0,0.20);
+}
+.notif-clear { color:var(--gold); cursor:pointer; font-size:10px;
+  font-family:'Outfit',sans-serif; letter-spacing:0; text-transform:none; transition:.2s; }
+.notif-clear:hover { color:var(--gold-lt); text-decoration:underline; }
+.notif-item { padding:13px 20px; border-bottom:1px solid rgba(255,255,255,0.06); cursor:pointer; transition:background .2s; }
+.notif-item:hover { background:rgba(201,169,110,0.06); }
+.notif-item.unread { background:rgba(201,169,110,0.07); border-left:2px solid var(--gold); }
+.notif-msg { font-size:13px; line-height:1.6; color:var(--on-card); margin-bottom:4px; }
+.notif-time { font-size:10px; color:var(--on-card-soft); font-family:'DM Mono',monospace; letter-spacing:1px; }
+.notif-empty { padding:48px 20px; text-align:center; color:var(--on-card-soft); font-size:14px; }
+
+/* ─── HERO ─── */
+.hero {
+  position:relative; z-index:5; overflow:hidden;
+  min-height:460px; display:flex; align-items:center; justify-content:center;
+  border-bottom:1px solid rgba(201,169,110,0.15);
+}
+.hero-bg-img {
+  position:absolute; inset:0;
+  background:url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1900&q=80') center 30%/cover no-repeat;
+  filter:saturate(0.18) brightness(0.38);
+  transform:scale(1.04); animation:heroDrift 18s ease-in-out infinite alternate; z-index:0;
+}
+@keyframes heroDrift { 0%{transform:scale(1.04) translate(0,0)} 100%{transform:scale(1.08) translate(-16px,-8px)} }
+.hero-bg-overlay {
+  position:absolute; inset:0; z-index:1;
+  background:
+    linear-gradient(90deg,rgba(14,28,44,0.96) 0%,rgba(14,28,44,0.72) 45%,rgba(14,28,44,0.24) 100%),
+    linear-gradient(180deg,rgba(14,28,44,0.35) 0%,transparent 40%,rgba(14,28,44,0.70) 100%);
+}
+.hero-accent-bar { position:absolute;left:0;top:0;bottom:0;width:3px;z-index:2;
+  background:linear-gradient(180deg,transparent,var(--gold) 20%,var(--gold) 80%,transparent); }
+.hero-grid-lines {
+  position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(201,169,110,0.025) 1px,transparent 1px),
+    linear-gradient(180deg,rgba(201,169,110,0.025) 1px,transparent 1px);
+  background-size:80px 80px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);
+}
+.hero-content {
+  position:relative; z-index:3;
+  width:100%; max-width:1200px; margin:0 auto;
+  padding:72px 64px;
+  display:flex; align-items:center; justify-content:space-between; gap:48px;
+}
+.hero-text { flex:1; max-width:620px; }
+.hero-eyebrow {
+  font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:7px; color:var(--gold);
+  text-transform:uppercase; margin-bottom:18px; opacity:.9;
+  display:flex; align-items:center; gap:14px; animation:fadeUp .5s ease-out both;
+}
+.hero-eyebrow::before { content:''; display:inline-block; width:28px; height:1px; background:var(--gold); flex-shrink:0; }
+.hero h1 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(52px,7vw,88px); font-weight:300;
+  color:var(--white); letter-spacing:-2px; line-height:0.90;
+  animation:fadeUp .5s .08s ease-out both;
+}
+.hero h1 .highlight {
+  color:var(--gold); display:block; font-style:italic;
+  font-size:clamp(44px,6vw,76px); letter-spacing:-1px; margin-top:4px;
+  text-shadow:0 0 40px rgba(201,169,110,0.22);
+}
+.hero-rule { width:70px; height:1px; background:linear-gradient(90deg,var(--gold),transparent); margin:22px 0; animation:fadeUp .5s .16s ease-out both; }
+.hero p {
+  font-size:15px; color:rgba(201,212,228,0.68); margin:0 0 36px;
+  font-weight:300; letter-spacing:.3px; line-height:1.75;
+  max-width:420px; animation:fadeUp .5s .22s ease-out both;
+}
+.hero-buttons { display:flex; gap:12px; flex-wrap:wrap; animation:fadeUp .5s .30s ease-out both; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+/* Hero buttons */
+.btn-hero {
+  padding:16px 38px; border:none; cursor:pointer;
+  font-family:'DM Mono',monospace; font-size:10px; font-weight:600;
+  letter-spacing:3px; text-transform:uppercase;
+  transition:all .32s cubic-bezier(.16,1,.3,1);
+  display:flex; align-items:center; gap:10px;
+  position:relative; overflow:hidden;
+}
+.btn-hero::after { content:''; position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.22),transparent);
+  transform:skewX(-15deg); transition:left .55s ease; }
+.btn-hero:hover::after { left:160%; }
+.btn-hero:hover { transform:translate(-2px,-2px); }
+.btn-hero:active { transform:translate(0,0); }
+
+.btn-create {
+  background:var(--gold); color:var(--ink);
+  box-shadow:4px 4px 0 rgba(0,0,0,0.40), 0 0 0 1px rgba(201,169,110,0.25);
+  font-weight:700; animation:goldPulse 3s ease-in-out infinite;
+}
+.btn-create:hover { background:var(--gold-lt); box-shadow:6px 6px 0 rgba(0,0,0,0.45); animation:none; }
+@keyframes goldPulse { 0%,100%{box-shadow:4px 4px 0 rgba(0,0,0,.40),0 0 0px rgba(201,169,110,0)} 50%{box-shadow:4px 4px 0 rgba(0,0,0,.40),0 0 22px rgba(201,169,110,0.35)} }
+
+.btn-view {
+  background:rgba(201,169,110,0.10); color:var(--gold);
+  border:1px solid rgba(201,169,110,0.32);
+  box-shadow:4px 4px 0 rgba(0,0,0,0.30);
+}
+.btn-view:hover { background:rgba(201,169,110,0.18); border-color:var(--gold); box-shadow:6px 6px 0 rgba(0,0,0,0.40); }
+
+/* ─── CONTAINER ─── */
+.container { max-width:1440px; margin:0 auto; padding:48px 48px 90px; position:relative; z-index:5; }
+
+/* Section label */
+.section-label {
+  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:5px; text-transform:uppercase;
+  color:var(--on-card-mid); margin-bottom:22px; display:flex; align-items:center; gap:12px;
+}
+.section-label::after { content:''; flex:1; height:1px; background:var(--border-mid); }
+
+/* ─── SEARCH & FILTERS ─── */
+.search-filters {
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--glass-border);
+  padding:20px; margin-bottom:44px;
+  box-shadow:0 2px 0 var(--gold),0 8px 40px rgba(0,0,0,0.25);
+  position:relative;
+}
+.search-filters::before { content:''; position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),var(--gold-lt),var(--gold),transparent); }
+.search-row { display:flex; gap:14px; }
+.search-box { flex:1; position:relative; }
+.search-box input {
+  width:100%; padding:13px 18px 13px 46px;
+  background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
+  font-size:13px; color:var(--on-card); outline:none; transition:all .25s;
+  font-family:'Outfit',sans-serif;
+}
+.search-box input::placeholder { color:rgba(255,255,255,0.30); }
+.search-box input:focus { border-color:var(--gold); background:rgba(255,255,255,0.10); box-shadow:0 0 0 3px rgba(201,169,110,0.10); }
+.search-icon { position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:17px;opacity:0.55; }
+.filter-buttons { display:flex; gap:10px; }
+.filter-btn {
+  padding:12px 20px; border:1px solid var(--border-mid);
+  background:rgba(255,255,255,0.04);
+  font-family:'DM Mono',monospace; font-size:9px; font-weight:600;
+  letter-spacing:2px; text-transform:uppercase; color:var(--on-card-mid);
+  cursor:pointer; transition:all .24s; display:flex; align-items:center; gap:6px;
+  position:relative; overflow:hidden;
+}
+.filter-btn::after { content:''; position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(201,169,110,0.18),transparent);
+  transform:skewX(-15deg); transition:left .5s ease; }
+.filter-btn:hover::after { left:160%; }
+.filter-btn:hover { border-color:rgba(201,169,110,0.32); color:var(--gold); background:rgba(201,169,110,0.07); }
+.filter-btn.active { background:var(--gold); border-color:var(--gold-deep); color:var(--ink); font-weight:700; }
+
+/* ─── TEAMS GRID ─── */
+.teams-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(370px,1fr)); gap:20px; }
+
+/* ─── TEAM CARD — dark glass on navy ─── */
+.team-card {
+  background:var(--card-bg);
+  border:1px solid var(--card-border);
+  border-left:3px solid rgba(201,169,110,0.45);
+  overflow:hidden; position:relative;
+  transition:all .32s cubic-bezier(.16,1,.3,1);
+  box-shadow:0 4px 24px rgba(0,0,0,0.30), 0 1px 0 rgba(255,255,255,0.04) inset;
+  animation:cardIn .45s cubic-bezier(.16,1,.3,1) both;
+  backdrop-filter:blur(12px);
+}
+@keyframes cardIn { from{opacity:0;transform:translateY(20px) scale(0.98)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+/* Gold shimmer top bar */
+.team-card::before { content:''; position:absolute;top:0;left:0;right:0;height:2px;z-index:2;
+  background:linear-gradient(90deg,transparent,var(--gold-deep),var(--gold),var(--gold-deep),transparent);
+  opacity:0; transition:opacity .28s; }
+.team-card:hover::before { opacity:1; }
+
+/* Sweep shimmer */
+.team-card-shimmer {
+  position:absolute; inset:0; pointer-events:none; z-index:1;
+  background:linear-gradient(108deg,transparent 32%,rgba(255,255,255,0.04) 50%,transparent 68%);
+  transform:translateX(-130%); transition:transform .65s ease;
+}
+.team-card:hover .team-card-shimmer { transform:translateX(130%); }
+
+.team-card:hover {
+  transform:translate(-3px,-3px);
+  box-shadow:6px 6px 0 rgba(0,0,0,0.40), 0 8px 32px rgba(0,0,0,0.35);
+  border-color:rgba(255,255,255,0.14);
+  border-left-color:var(--gold);
+}
+
+/* Card header */
+.card-header {
+  padding:12px 18px; margin-top:2px;
+  background:rgba(255,255,255,0.04);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  position:relative; z-index:2;
+}
+.activity-badge {
+  padding:6px 14px; background:var(--gold-dim); color:var(--gold);
+  text-transform:uppercase; letter-spacing:2.5px; font-size:9px; font-weight:600;
+  font-family:'DM Mono',monospace;
+  border:1px solid var(--gold-border);
+  animation:badgePulse 3s ease-in-out infinite;
+}
+@keyframes badgePulse { 0%,100%{opacity:1} 50%{opacity:.75} }
+.member-fraction {
+  padding:5px 12px; background:rgba(255,255,255,0.07); color:var(--on-card-mid);
+  border:1px solid rgba(255,255,255,0.12); font-family:'DM Mono',monospace;
+  font-size:10px; font-weight:600; white-space:nowrap; letter-spacing:1px;
+}
+
+/* Card body */
+.card-body { padding:16px 18px; position:relative; z-index:2; }
+.contact-number {
+  font-size:10px; font-weight:500; color:var(--ci-text);
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,0.06); padding:6px 12px;
+  margin-bottom:12px;
+  border:1px solid rgba(255,255,255,0.09);
+  font-family:'DM Mono',monospace; letter-spacing:.5px;
+}
+.creator-info {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 13px; background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-left:2px solid var(--gold-border);
+  margin-bottom:12px;
+}
+.creator-avatar {
+  width:40px; height:40px;
+  background:var(--gold-dim); border:1px solid var(--gold-border);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; color:var(--gold); font-size:16px; flex-shrink:0;
+  font-family:'Cormorant Garamond',serif; letter-spacing:1px;
+}
+.creator-details { flex:1; }
+.creator-name { font-size:13px; font-weight:600; color:var(--on-card); line-height:1.3; letter-spacing:.5px; }
+.creator-email { font-size:10px; color:var(--ci-text-soft); font-family:'DM Mono',monospace; letter-spacing:.5px; }
+.info-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.info-item {
+  padding:8px 11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);
+  font-size:11px; font-weight:500; color:var(--ci-text);
+  display:flex; align-items:center; gap:6px;
+  font-family:'Outfit',sans-serif;
+}
+.location {
+  font-size:11px; color:var(--ci-text); font-weight:500;
+  display:flex; align-items:center; gap:6px;
+  padding:8px 11px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);
+}
+.message {
+  font-size:13.5px; color:rgba(255,255,255,0.48); line-height:1.65; margin-bottom:12px;
+  padding:11px 13px; background:rgba(255,255,255,0.03);
+  border-left:2px solid rgba(201,169,110,0.35); font-style:italic;
+  font-family:'Cormorant Garamond',serif;
+}
+.datetime { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.datetime span {
+  font-size:9px; color:var(--gold); display:flex; align-items:center; gap:5px;
+  padding:5px 11px; background:var(--gold-dim);
+  border:1px solid var(--gold-border); font-family:'DM Mono',monospace;
+  font-weight:600; letter-spacing:.5px;
+}
+
+/* Card footer */
+.card-footer { padding:14px 18px; background:rgba(255,255,255,0.025); border-top:1px solid rgba(255,255,255,0.07); position:relative; z-index:2; }
+.btn-join {
+  width:100%; padding:13px; border:1px solid rgba(201,169,110,0.28); background:rgba(201,169,110,0.08); color:var(--gold);
+  font-family:'DM Mono',monospace; font-size:10px; font-weight:600;
+  letter-spacing:3px; text-transform:uppercase;
+  cursor:pointer; transition:all .3s cubic-bezier(.16,1,.3,1);
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  position:relative; overflow:hidden;
+}
+.btn-join::before { content:''; position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(201,169,110,0.18),transparent);
+  transform:skewX(-15deg); transition:left .55s ease; }
+.btn-join:hover::before { left:160%; }
+.btn-join:hover { background:rgba(201,169,110,0.18); border-color:var(--gold); color:var(--gold-lt); transform:translate(-2px,-2px); box-shadow:4px 4px 0 rgba(0,0,0,0.30); }
+.btn-join:active { transform:translate(0,0); }
+.btn-join:disabled { background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.22); cursor:not-allowed; transform:none; box-shadow:none; border:1px solid rgba(255,255,255,0.08); }
+
+/* ─── MODALS ─── */
+.modal-overlay {
+  position:fixed; inset:0;
+  background:rgba(6,12,22,0.80); backdrop-filter:blur(12px);
+  display:none; align-items:center; justify-content:center; z-index:1000; padding:20px;
+}
+.modal-overlay.show { display:flex; }
+.modal {
+  background:rgba(15,31,48,0.96); border:1px solid rgba(255,255,255,0.09);
+  padding:36px; max-width:600px; width:100%; max-height:90vh; overflow-y:auto;
+  box-shadow:0 2px 0 var(--gold),0 40px 80px rgba(0,0,0,0.60);
+  animation:modalIn .28s cubic-bezier(.16,1,.3,1);
+  position:relative; backdrop-filter:blur(32px);
+}
+.modal::before { content:''; position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),var(--gold-lt),var(--gold),transparent); }
+@keyframes modalIn { from{opacity:0;transform:translateY(-22px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+/* JOIN MODAL */
+#joinModal .modal { background:rgba(18,36,57,0.97); }
+#joinModal .modal-header { border-bottom-color:rgba(255,255,255,0.10); }
+#joinModal .modal-header h2 { color:var(--gold); }
+#joinModal .modal-close { background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.14); color:var(--on-card-mid); }
+#joinModal .modal-close:hover { background:var(--gold); color:var(--ink); border-color:var(--gold); }
+#joinModal .form-group label { color:var(--gold); }
+#joinModal .form-group input, #joinModal .form-group textarea { background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.12); color:var(--on-card); }
+#joinModal .form-group input::placeholder, #joinModal .form-group textarea::placeholder { color:var(--on-card-soft); }
+#joinModal .form-group input:focus, #joinModal .form-group textarea:focus { background:rgba(255,255,255,0.10); border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,169,110,0.10); }
+#joinModal .form-group small { color:var(--on-card-soft); }
+#joinModal .modal-footer { border-top-color:rgba(255,255,255,0.08); }
+#joinModal .btn-secondary { color:var(--on-card-mid); border-color:rgba(255,255,255,0.16); }
+#joinModal .btn-secondary:hover { background:rgba(255,255,255,0.08); }
+
+.modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:26px; padding-bottom:18px; border-bottom:1px solid rgba(255,255,255,0.09); }
+.modal-header h2 { font-family:'Cormorant Garamond',serif; font-size:36px; font-weight:300; color:var(--gold); letter-spacing:-.5px; }
+.modal-close {
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:var(--on-card-mid);
+  font-size:20px; cursor:pointer; width:38px; height:38px;
+  display:flex; align-items:center; justify-content:center; transition:all .22s;
+}
+.modal-close:hover { background:var(--gold); color:var(--ink); border-color:var(--gold); transform:rotate(90deg); }
+
+.form-group { margin-bottom:18px; }
+.form-group label { display:block; font-family:'DM Mono',monospace; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); font-weight:500; margin-bottom:7px; }
+.form-group input, .form-group select, .form-group textarea {
+  width:100%; padding:13px 15px;
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+  font-family:'Outfit',sans-serif; font-size:13px; color:var(--on-card); outline:none; transition:all .22s;
+}
+.form-group input::placeholder, .form-group textarea::placeholder { color:var(--on-card-soft); }
+.form-group select option { background:var(--head-bg); color:var(--on-card); }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,169,110,0.10); background:rgba(255,255,255,0.09);
+}
+.form-group textarea { resize:vertical; min-height:100px; }
+.form-group small { display:block; margin-top:5px; font-size:11px; color:var(--on-card-soft); font-family:'DM Mono',monospace; }
+.form-group .error { color:#f05454; font-size:11px; margin-top:5px; display:none; font-weight:600; font-family:'DM Mono',monospace; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.time-ampm-group { display:grid; grid-template-columns:1fr 88px; gap:10px; }
+
+.modal-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:24px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.08); }
+
+.btn { padding:11px 22px; border:none; font-family:'DM Mono',monospace; font-size:9px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; cursor:pointer; transition:all .24s; display:inline-flex; align-items:center; gap:7px; position:relative; overflow:hidden; }
+.btn::before { content:''; position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);
+  transform:skewX(-15deg); transition:left .5s; }
+.btn:hover::before { left:160%; }
+.btn:hover { transform:translateY(-2px); }
+.btn:active { transform:translateY(0); }
+.btn-primary { background:var(--gold); color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,0.35); font-weight:700; }
+.btn-primary:hover { background:var(--gold-lt); box-shadow:5px 5px 0 rgba(0,0,0,0.40); }
+.btn-secondary { background:rgba(255,255,255,0.06); color:var(--on-card-mid); border:1px solid rgba(255,255,255,0.12); }
+.btn-secondary:hover { background:rgba(255,255,255,0.12); color:var(--on-card); }
+
+/* ── FILTER MODAL ── */
+.filter-modal { max-width:480px; }
+.filter-section { margin-bottom:24px; }
+.filter-section-title { font-family:'DM Mono',monospace; font-size:9px; font-weight:600; color:var(--gold); margin-bottom:10px; letter-spacing:2.5px; text-transform:uppercase; padding-bottom:7px; border-bottom:1px solid rgba(255,255,255,0.08); }
+.time-slots { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.time-slot { padding:12px; border:1px solid rgba(255,255,255,0.10); background:rgba(255,255,255,0.04); text-align:center; cursor:pointer; transition:all .22s; font-size:12px; font-weight:500; color:var(--on-card-mid); }
+.time-slot:hover { border-color:rgba(201,169,110,0.30); color:var(--gold); background:rgba(201,169,110,0.06); }
+.time-slot.active { background:rgba(201,169,110,0.14); border-color:rgba(201,169,110,0.40); color:var(--gold); box-shadow:2px 2px 0 rgba(201,169,110,0.20); }
+.date-input-group { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.date-input-group input { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); color:var(--on-card); padding:11px 13px; font-family:'Outfit',sans-serif; font-size:13px; outline:none; transition:all .22s; }
+.date-input-group input:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,169,110,0.10); }
+
+/* ─── LOADING / EMPTY ─── */
+.empty-state {
+  text-align:center; padding:70px 20px; background:rgba(255,255,255,0.03);
+  border:1px solid var(--glass-border); box-shadow:0 2px 0 var(--gold),0 8px 40px rgba(0,0,0,0.24);
+  backdrop-filter:blur(10px);
+}
+.empty-icon { font-size:60px; margin-bottom:14px; opacity:0.35; }
+.empty-text { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:300; color:var(--on-card-mid); }
+.loading { text-align:center; padding:70px 20px; background:rgba(255,255,255,0.03); border:1px solid var(--glass-border); backdrop-filter:blur(10px); }
+.spinner { width:44px; height:44px; margin:0 auto 14px; border:2px solid rgba(201,169,110,0.14); border-radius:50%; border-top-color:var(--gold); animation:spin .70s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* ─── BACK FOOTER ─── */
+.back-footer { display:flex; justify-content:center; align-items:center; margin-top:52px; padding:28px 0 18px; border-top:1px solid rgba(255,255,255,0.08); gap:18px; }
+.back-footer-line { flex:1; max-width:180px; height:1px; background:linear-gradient(90deg,transparent,rgba(201,169,110,0.18),transparent); }
+.btn-back {
+  padding:13px 48px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.05);
+  color:var(--on-card-mid); font-family:'DM Mono',monospace; font-size:9px; font-weight:600;
+  letter-spacing:4px; text-transform:uppercase; cursor:pointer; position:relative; overflow:hidden; transition:all .24s;
+}
+.btn-back::before { content:''; position:absolute;top:0;left:50%;right:50%;height:1px; background:var(--gold); transition:left .26s,right .26s; }
+.btn-back:hover::before { left:0; right:0; }
+.btn-back:hover { background:rgba(201,169,110,0.10); color:var(--gold); border-color:rgba(201,169,110,0.28); transform:translateY(-2px); }
+.btn-back:active { transform:translate(0,0); }
+
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(201,169,110,0.30); border-radius:2px; }
+
+.hidden { display:none !important; }
+
+@media(max-width:900px){
+  .hero-content { flex-direction:column; padding:52px 24px 48px; }
+}
+@media(max-width:640px){
+  .topbar { padding:0 16px; }
+  .hero h1 { font-size:52px; }
+  .container { padding:28px 18px 60px; }
+  .search-row { flex-direction:column; }
+  .teams-grid { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+  .time-ampm-group { grid-template-columns:1fr; }
+  .hero-buttons { flex-direction:column; align-items:flex-start; }
+  .info-grid { grid-template-columns:1fr; }
+  .notif-dropdown { right:16px; width:300px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ BG LAYERS ══════════════════ -->
+<div class="bg">
+  <div class="bg-depth"></div>
+  <div class="stripes">
+    <div class="stripe s1"></div><div class="stripe s2"></div>
+    <div class="stripe s3"></div><div class="stripe s4"></div>
+    <div class="stripe s5"></div><div class="se"></div>
+  </div>
+  <div class="bg-hlines"></div>
+  <div class="bg-grain"></div>
+  <div class="bg-vignette"></div>
+</div>
+
+<div class="top-stripe"></div>
+<div class="bot-strip"></div>
+
+<div class="page-content">
+<div class="topbar">
+    <div class="topbar-left">
+        <button class="topbar-back" onclick="location.href='user.html'">
+            <span class="topbar-back-arrow">←</span>
+            <span class="topbar-back-label">Back</span>
+        </button>
+        <div class="topbar-divider"></div>
+        <div class="logo">
+            <div class="logo-line1">Book<em>It</em></div>
+            <div class="logo-line2">FindYourTeam 🫂</div>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <div class="notif-bell" onclick="toggleNotifications()">
+            🔔
+            <span class="notif-badge hidden" id="notifBadge">0</span>
+        </div>
+    </div>
+</div>
+
+<!-- NOTIFICATIONS DROPDOWN -->
+<div class="notif-dropdown" id="notifDropdown">
+    <div class="notif-header">
+        <span>Notifications</span>
+        <span class="notif-clear" onclick="clearAllNotifications()">Clear All</span>
+    </div>
+    <div id="notifList"></div>
+</div>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero">
+    <div class="hero-bg-img"></div>
+    <div class="hero-bg-overlay"></div>
+    <div class="hero-accent-bar"></div>
+    <div class="hero-grid-lines"></div>
+    <div class="hero-content">
+        <div class="hero-text">
+            <div class="hero-eyebrow">Find Your Squad</div>
+            <h1>Build Your<span class="highlight">Team</span></h1>
+            <div class="hero-rule"></div>
+            <p>Connect with like-minded players, organise matches, and build your squad — all in one place.</p>
+            <div class="hero-buttons">
+                <button class="btn-hero btn-create" onclick="openCreateModal()">
+                    ✨ Create New Team
+                </button>
+                <button class="btn-hero btn-view" onclick="location.href='myteams.html'">
+                    👥 My Teams
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════ CONTAINER ══════════════════ -->
+<div class="container">
+
+    <div class="section-label">Open Teams · Browse &amp; Join</div>
+    <div class="search-filters">
+        <div class="search-row">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchActivity" oninput="applyFilters()" placeholder="Search by activity, sport, or game...">
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn" onclick="openFilterModal()">
+                    📅 Date &amp; Time
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="teamsContainer">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p style="color:var(--on-card-mid);margin-top:8px;font-size:13px;font-family:'DM Mono',monospace;letter-spacing:1px;">Loading teams...</p>
+        </div>
+    </div>
+
+    <div class="back-footer">
+        <div class="back-footer-line"></div>
+        <button class="btn btn-back" onclick="location.href='user.html'">← Back to Home</button>
+        <div class="back-footer-line"></div>
+    </div>
+
+</div>
+
+<!-- ══════════════════ FILTER MODAL ══════════════════ -->
+<div class="modal-overlay" id="filterModal">
+    <div class="modal filter-modal">
+        <div class="modal-header">
+            <h2>Filter &amp; Sort</h2>
+            <button class="modal-close" onclick="closeFilterModal()">&times;</button>
+        </div>
+        <div class="filter-section">
+            <div class="filter-section-title">Time Slot</div>
+            <div class="time-slots">
+                <div class="time-slot" data-slot="morning" onclick="toggleTimeSlot('morning')">🌅 Morning (12 AM to 9 AM)</div>
+                <div class="time-slot" data-slot="day" onclick="toggleTimeSlot('day')">☀️ Day (9 AM to 4 PM)</div>
+                <div class="time-slot" data-slot="evening" onclick="toggleTimeSlot('evening')">🌆 Evening (4 PM to 9 PM)</div>
+                <div class="time-slot" data-slot="night" onclick="toggleTimeSlot('night')">🌙 Night (9 PM to 12 PM)</div>
+            </div>
+        </div>
+        <div class="filter-section">
+            <div class="filter-section-title">Date Range</div>
+            <div class="date-input-group">
+                <input type="date" id="filterFromDate" placeholder="From Date">
+                <input type="date" id="filterToDate" placeholder="To Date">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="clearDateFilters()">Clear Filters</button>
+            <button class="btn btn-primary" onclick="applyDateFilters()">See Results</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════ CREATE TEAM MODAL ══════════════════ -->
+<div class="modal-overlay" id="createModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Create Team</h2>
+            <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+        </div>
+        <form onsubmit="createTeam(event)">
+            <div class="form-group">
+                <label>Activity / Sport *</label>
+                <input type="text" id="activity" required placeholder="e.g., Basketball, Football, Cricket">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Your Full Name *</label>
+                    <input type="text" id="creatorName" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label>Contact Number *</label>
+                    <input type="tel" id="creatorContact" required placeholder="9876543210" maxlength="10" pattern="[0-9]{10}">
+                    <small class="error" id="creatorContactError">Must be 10 digits</small>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Members Needed *</label>
+                <input type="number" id="needMore" min="1" max="20" required placeholder="4">
+                <small>How many additional members do you need (excluding you)?</small>
+            </div>
+            <div class="form-group">
+                <label>Location *</label>
+                <input type="text" id="location" required placeholder="e.g., Main Campus Ground, City Park">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date (Optional)</label>
+                    <input type="date" id="date">
+                </div>
+                <div class="form-group">
+                    <label>Time (Optional)</label>
+                    <div class="time-ampm-group">
+                        <input type="time" id="time">
+                        <select id="ampm"><option value="AM">AM</option><option value="PM">PM</option></select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Description *</label>
+                <textarea id="message" required placeholder="Looking for experienced players for weekend matches. All skill levels welcome!"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Team</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ══════════════════ JOIN REQUEST MODAL ══════════════════ -->
+<div class="modal-overlay" id="joinModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Join Team</h2>
+            <button class="modal-close" onclick="closeJoinModal()">&times;</button>
+        </div>
+        <form onsubmit="submitJoinRequest(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Your Full Name *</label>
+                    <input type="text" id="joinName" required>
+                </div>
+                <div class="form-group">
+                    <label>Contact Number *</label>
+                    <input type="tel" id="joinContact" required placeholder="9876543210" maxlength="10" pattern="[0-9]{10}">
+                    <small class="error" id="joinContactError">Must be 10 digits</small>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Your Message *</label>
+                <textarea id="joinMessage" required placeholder="Hi! I'm interested in joining your team. I have experience..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeJoinModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Send Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+// ══════════════════ FIREBASE INIT ══════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, getDoc, doc, query, where, limit, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey:"AIzaSyDYD768C9UY7PHq8BrQLN8paau3LmXAnFs",
+    authDomain:"bookit-56e35.firebaseapp.com",
+    projectId:"bookit-56e35",
+    storageBucket:"bookit-56e35.appspot.com",
+    messagingSenderId:"813441391899",
+    appId:"1:813441391899:web:d5bf9d33c6b81c983a87be"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let selectedTeamId = null;
+let allTeams = [];
+let activeTimeSlots = [];
+
+// ══════════════════ AUTH ══════════════════
+onAuthStateChanged(auth, user => {
+    if (!user) { location.href = 'index.html'; return; }
+    currentUser = user;
+    loadTeams();
+    loadNotifications();
+    listenToNotifications();
+});
+
+// ══════════════════ PHONE VALIDATION ══════════════════
+function validatePhone(input, errorId) {
+    const value = input.value;
+    const errorEl = document.getElementById(errorId);
+    if (value.length > 0 && (value.length !== 10 || !/^\d+$/.test(value))) {
+        errorEl.style.display = 'block'; input.style.borderColor = '#f05454'; return false;
+    } else { errorEl.style.display = 'none'; input.style.borderColor = ''; return true; }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const creatorContact = document.getElementById('creatorContact');
+    const joinContact = document.getElementById('joinContact');
+    if (creatorContact) creatorContact.addEventListener('input', () => validatePhone(creatorContact, 'creatorContactError'));
+    if (joinContact) joinContact.addEventListener('input', () => validatePhone(joinContact, 'joinContactError'));
+});
+
+// ══════════════════ FILTER MODAL ══════════════════
+window.openFilterModal = function() { document.getElementById('filterModal').classList.add('show'); }
+window.closeFilterModal = function() { document.getElementById('filterModal').classList.remove('show'); }
+window.toggleTimeSlot = function(slot) {
+    const slotElement = document.querySelector(`[data-slot="${slot}"]`);
+    slotElement.classList.toggle('active');
+    const index = activeTimeSlots.indexOf(slot);
+    if (index > -1) activeTimeSlots.splice(index, 1); else activeTimeSlots.push(slot);
+}
+window.clearDateFilters = function() {
+    document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('active'));
+    document.getElementById('filterFromDate').value = '';
+    document.getElementById('filterToDate').value = '';
+    activeTimeSlots = [];
+}
+window.applyDateFilters = function() { closeFilterModal(); applyFilters(); }
+
+// ══════════════════ LOAD TEAMS ══════════════════
+async function loadTeams() {
+    const container = document.getElementById('teamsContainer');
+    container.innerHTML = '<div class="loading"><div class="spinner"></div><p style="color:rgba(255,255,255,0.42);margin-top:8px;font-size:13px;font-family:\'DM Mono\',monospace;letter-spacing:1px;">Loading teams...</p></div>';
+    try {
+        const teamsRef = collection(db, 'teamfinder_posts');
+        const q = query(teamsRef, where('open', '==', true));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p class="empty-text">No open teams found. Create one!</p></div>'; return; }
+        allTeams = [];
+        snapshot.forEach(docSnap => { const data = docSnap.data(); data.id = docSnap.id; allTeams.push(data); });
+        allTeams.sort((a, b) => { const timeA = a.createdAt ? a.createdAt.toMillis() : 0; const timeB = b.createdAt ? b.createdAt.toMillis() : 0; return timeB - timeA; });
+        applyFilters();
+    } catch (error) {
+        console.error('Error loading teams:', error);
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p class="empty-text">Error loading teams: ${error.message}</p></div>`;
+    }
+}
+
+window.applyFilters = function() {
+    const container = document.getElementById('teamsContainer');
+    const searchTerm = document.getElementById('searchActivity').value.toLowerCase();
+    const fromDate = document.getElementById('filterFromDate')?.value;
+    const toDate = document.getElementById('filterToDate')?.value;
+    let filtered = allTeams.filter(team => {
+        if (searchTerm && !team.activity.toLowerCase().includes(searchTerm)) return false;
+        if (fromDate && team.date && team.date < fromDate) return false;
+        if (toDate && team.date && team.date > toDate) return false;
+        if (activeTimeSlots.length > 0 && team.time) {
+            const hour = parseInt(team.time.split(':')[0]); let matchesSlot = false;
+            activeTimeSlots.forEach(slot => {
+                if (slot === 'morning' && hour >= 0 && hour < 9) matchesSlot = true;
+                if (slot === 'day' && hour >= 9 && hour < 16) matchesSlot = true;
+                if (slot === 'evening' && hour >= 16 && hour < 21) matchesSlot = true;
+                if (slot === 'night' && (hour >= 21 || hour < 0)) matchesSlot = true;
+            });
+            if (!matchesSlot) return false;
+        }
+        return true;
+    });
+    if (filtered.length === 0) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p class="empty-text">No teams found matching your filters</p></div>'; return; }
+    const grid = document.createElement('div'); grid.className = 'teams-grid';
+    filtered.forEach((team, i) => { const card = createTeamCard(team); card.style.animationDelay = `${i * 0.05}s`; grid.appendChild(card); });
+    container.innerHTML = ''; container.appendChild(grid);
+}
+
+function createTeamCard(team) {
+    const card = document.createElement('div'); card.className = 'team-card';
+    const needMore = team.needMore || 0;
+    const memberCount = team.members ? team.members.length - 1 : 0;
+    const totalTeamSize = memberCount + needMore;
+    const isFull = needMore === 0;
+    const isCreator = currentUser && team.createdBy === currentUser.email;
+    const isMember = currentUser && team.members && team.members.includes(currentUser.email);
+    const creatorInitial = team.creatorName ? team.creatorName.charAt(0).toUpperCase() : 'U';
+    card.innerHTML = `
+        <div class="team-card-shimmer"></div>
+        <div class="card-header">
+            <div class="activity-badge">${team.activity}</div>
+            <div class="member-fraction">${memberCount}/${totalTeamSize}</div>
+        </div>
+        <div class="card-body">
+            <div class="contact-number">📞 ${team.creatorContact || 'N/A'}</div>
+            <div class="creator-info">
+                <div class="creator-avatar">${creatorInitial}</div>
+                <div class="creator-details">
+                    <div class="creator-name">${team.creatorName || 'Anonymous'}</div>
+                    <div class="creator-email">${team.createdBy || 'Not provided'}</div>
+                </div>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">👥 ${needMore === 0 ? '✅ Full' : needMore + ' needed'}</div>
+                ${team.location ? `<div class="location">📍 ${team.location}</div>` : ''}
+            </div>
+            <div class="message">${team.message}</div>
+            ${team.date || team.time ? `<div class="datetime">${team.date ? `<span>📅 ${formatDate(team.date)}</span>` : ''}${team.time ? `<span>⏰ ${formatTime(team.time, team.ampm)}</span>` : ''}</div>` : ''}
+        </div>
+        <div class="card-footer">
+            <button class="btn-join" onclick="openJoinModal('${team.id}')" ${isFull || isCreator || isMember ? 'disabled' : ''}>
+                ${isCreator ? '✓ Your Team' : isMember ? '✓ Already Joined' : isFull ? '❌ Team Full' : '🚀 Join Request'}
+            </button>
+        </div>`;
+    return card;
+}
+
+function formatDate(dateStr) { if (!dateStr) return ''; const date = new Date(dateStr); return date.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }); }
+function formatTime(timeStr, ampm) { if (!timeStr) return ''; const [hours, minutes] = timeStr.split(':'); const hour = parseInt(hours); const period = ampm || (hour >= 12 ? 'PM' : 'AM'); const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour); return `${displayHour}:${minutes} ${period}`; }
+
+// ══════════════════ CREATE TEAM ══════════════════
+window.openCreateModal = function() { document.getElementById('createModal').classList.add('show'); }
+window.closeCreateModal = function() {
+    document.getElementById('createModal').classList.remove('show');
+    ['activity','creatorName','creatorContact','needMore','location','message','date','time'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    document.getElementById('ampm').value = 'AM';
+}
+window.createTeam = async function(e) {
+    e.preventDefault();
+    const creatorContact = document.getElementById('creatorContact');
+    if (!validatePhone(creatorContact, 'creatorContactError')) { alert('Please enter a valid 10-digit phone number'); return; }
+    const activity = document.getElementById('activity').value;
+    const creatorName = document.getElementById('creatorName').value;
+    const needMore = parseInt(document.getElementById('needMore').value);
+    const location = document.getElementById('location').value;
+    const message = document.getElementById('message').value;
+    const date = document.getElementById('date').value;
+    const time = document.getElementById('time').value;
+    const ampm = document.getElementById('ampm').value;
+    if (!currentUser) return;
+    try {
+        await addDoc(collection(db, 'teamfinder_posts'), {
+            activity, creatorName, creatorContact: creatorContact.value, needMore,
+            members: [currentUser.email],
+            memberDetails: [{ email: currentUser.email, name: creatorName, contact: creatorContact.value, isCreator: true }],
+            location, message, date: date || '', time: time || '', ampm: ampm || '',
+            open: true, createdBy: currentUser.email, createdAt: serverTimestamp()
+        });
+        window.closeCreateModal(); loadTeams(); alert('Team created successfully! 🎉');
+    } catch (error) { console.error('Error creating team:', error); alert('Error creating team: ' + error.message); }
+}
+
+// ══════════════════ JOIN REQUEST ══════════════════
+window.openJoinModal = function(teamId) { selectedTeamId = teamId; document.getElementById('joinModal').classList.add('show'); }
+window.closeJoinModal = function() {
+    document.getElementById('joinModal').classList.remove('show');
+    ['joinName','joinContact','joinMessage'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    selectedTeamId = null;
+}
+window.submitJoinRequest = async function(e) {
+    e.preventDefault();
+    const joinContact = document.getElementById('joinContact');
+    if (!validatePhone(joinContact, 'joinContactError')) { alert('Please enter a valid 10-digit phone number'); return; }
+    if (!selectedTeamId || !currentUser) return;
+    const name = document.getElementById('joinName').value;
+    const message = document.getElementById('joinMessage').value;
+    try {
+        const requestsRef = collection(db, 'teamfinder_requests');
+        const q = query(requestsRef, where('teamId','==',selectedTeamId), where('requestedBy','==',currentUser.email));
+        const existing = await getDocs(q);
+        if (!existing.empty) { alert('You already sent a request to this team!'); window.closeJoinModal(); return; }
+        const teamDocRef = doc(db, 'teamfinder_posts', selectedTeamId);
+        const teamDoc = await getDoc(teamDocRef);
+        const teamData = teamDoc.data();
+        await addDoc(collection(db, 'teamfinder_requests'), { teamId: selectedTeamId, requestedBy: currentUser.email, requesterName: name, requesterContact: joinContact.value, message, status: 'pending', timestamp: serverTimestamp() });
+        await addDoc(collection(db, 'notifications'), { userId: teamData.createdBy, type: 'join_request', teamId: selectedTeamId, fromUser: currentUser.email, fromName: name, message: `${name} wants to join your ${teamData.activity} team`, read: false, timestamp: serverTimestamp() });
+        window.closeJoinModal(); alert('Join request sent! 🚀');
+    } catch (error) { console.error('Error sending request:', error); alert('Error sending request: ' + error.message); }
+}
+
+// ══════════════════ NOTIFICATIONS ══════════════════
+window.toggleNotifications = function() {
+    const dropdown = document.getElementById('notifDropdown');
+    dropdown.classList.toggle('show');
+    if (dropdown.classList.contains('show')) loadNotifications();
+}
+async function loadNotifications() {
+    if (!currentUser) return;
+    try {
+        const notifsRef = collection(db, 'notifications');
+        const q = query(notifsRef, where('userId','==',currentUser.email), limit(20));
+        const snapshot = await getDocs(q);
+        const notifList = document.getElementById('notifList');
+        const badge = document.getElementById('notifBadge');
+        if (snapshot.empty) { notifList.innerHTML = '<div class="notif-empty">No notifications yet</div>'; badge.classList.add('hidden'); return; }
+        let unreadCount = 0; let notifs = [];
+        snapshot.forEach(docSnap => { const notif = docSnap.data(); notif.id = docSnap.id; if (!notif.read) unreadCount++; notifs.push(notif); });
+        notifs.sort((a, b) => { const timeA = a.timestamp ? a.timestamp.toMillis() : 0; const timeB = b.timestamp ? b.timestamp.toMillis() : 0; return timeB - timeA; });
+        notifList.innerHTML = '';
+        notifs.forEach(notif => {
+            const item = document.createElement('div'); item.className = `notif-item ${notif.read ? '' : 'unread'}`;
+            item.onclick = () => handleNotificationClick(notif.id, notif);
+            const timeAgo = notif.timestamp ? getTimeAgo(notif.timestamp.toDate()) : 'Just now';
+            item.innerHTML = `<div class="notif-msg">${notif.message}</div><div class="notif-time">${timeAgo}</div>`;
+            notifList.appendChild(item);
+        });
+        if (unreadCount > 0) { badge.textContent = unreadCount; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
+    } catch (error) { console.error('Error loading notifications:', error); }
+}
+function listenToNotifications() {
+    if (!currentUser) return;
+    const notifsRef = collection(db, 'notifications');
+    const q = query(notifsRef, where('userId','==',currentUser.email), where('read','==',false));
+    onSnapshot(q, () => { loadNotifications(); });
+}
+async function handleNotificationClick(notifId, notif) {
+    try {
+        const notifRef = doc(db, 'notifications', notifId);
+        await updateDoc(notifRef, { read: true });
+        if (notif.type === 'join_request') location.href = 'myteams.html';
+        loadNotifications();
+    } catch (error) { console.error('Error handling notification:', error); }
+}
+window.clearAllNotifications = async function() {
+    if (!currentUser) return;
+    try {
+        const notifsRef = collection(db, 'notifications');
+        const q = query(notifsRef, where('userId','==',currentUser.email));
+        const snapshot = await getDocs(q);
+        const deletePromises = [];
+        snapshot.forEach(docSnap => { deletePromises.push(deleteDoc(doc(db, 'notifications', docSnap.id))); });
+        await Promise.all(deletePromises); loadNotifications();
+    } catch (error) { console.error('Error clearing notifications:', error); }
+}
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    let interval = seconds / 31536000; if (interval > 1) return Math.floor(interval) + ' years ago';
+    interval = seconds / 2592000; if (interval > 1) return Math.floor(interval) + ' months ago';
+    interval = seconds / 86400; if (interval > 1) return Math.floor(interval) + ' days ago';
+    interval = seconds / 3600; if (interval > 1) return Math.floor(interval) + ' hours ago';
+    interval = seconds / 60; if (interval > 1) return Math.floor(interval) + ' minutes ago';
+    return 'Just now';
+}
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.notif-bell') && !e.target.closest('.notif-dropdown')) document.getElementById('notifDropdown').classList.remove('show');
+});
+</script>
+
+</div><!-- /page-content -->
+</body>
+</html>

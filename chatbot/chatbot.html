@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookBot — Campus Booking Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Outfit:wght@200;300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="chatbot.css">
+  <style>
+
+    /* ══════════════════════════════════
+       TOKENS — slots.html design system
+    ══════════════════════════════════ */
+    :root {
+      --primary:      #19304D;
+      --primary-mid:  #1f3c5e;
+      --primary-lt:   #274d78;
+      --primary-deep: #0f1f30;
+      --white:        #ffffff;
+      --card-bg:      #1a3352;
+      --section-bg:   #1e3d60;
+      --head-bg:      #162c47;
+      --gold:         #c9a96e;
+      --gold-lt:      #e8cfa0;
+      --gold-deep:    #a07840;
+      --silver:       #b8bfcc;
+      --ink-dark:     #0f1f30;
+      --on-card:      rgba(255,255,255,0.88);
+      --on-card-mid:  rgba(255,255,255,0.52);
+      --on-card-soft: rgba(255,255,255,0.26);
+      --border:       rgba(255,255,255,0.09);
+      --border-mid:   rgba(255,255,255,0.14);
+      --input-bg:     #f4f7fb;
+      --shadow-lg:    0 40px 100px rgba(6,12,22,0.65), 0 0 0 1px rgba(255,255,255,0.07) inset;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; width:100%; font-family:'Outfit', sans-serif; overflow:hidden; }
+
+    /* ══════════════════════════════════
+       BACKGROUND — slots.html exact
+    ══════════════════════════════════ */
+    body { background:#19304D; position:relative; }
+
+    .bg {
+      position:fixed; inset:0; z-index:0;
+      background:#19304D; overflow:hidden;
+    }
+    .bg-depth {
+      position:absolute; inset:0;
+      background:
+        radial-gradient(ellipse 90% 80% at 0% 0%,   rgba(31,60,94,0.70) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 60% at 100% 100%, rgba(10,18,28,0.80) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 55% at 50% 50%,  rgba(25,48,77,0.20) 0%, transparent 70%);
+    }
+    .stripes {
+      position:absolute; inset:-60% -20%;
+      width:140%; height:220%;
+      transform-origin:center; transform:rotate(-28deg);
+      pointer-events:none;
+    }
+    .stripe { position:absolute; top:0; bottom:0; }
+    .s1 { left:14%;  width:7%;  background:rgba(255,255,255,0.038); }
+    .s2 { left:25%;  width:11%; background:rgba(255,255,255,0.028); }
+    .s3 { left:41%;  width:5%;  background:rgba(255,255,255,0.048); }
+    .s4 { left:55%;  width:2%;  background:rgba(255,255,255,0.025); }
+    .s5 { left:63%;  width:6%;  background:rgba(255,255,255,0.020); }
+    .s6 { left:75%;  width:3%;  background:rgba(255,255,255,0.032); }
+    .se1 {
+      position:absolute; top:0; bottom:0; left:22%; width:1.5px;
+      background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,0.22) 15%,rgba(255,255,255,0.28) 40%,rgba(255,255,255,0.22) 65%,transparent 100%);
+    }
+    .se2 {
+      position:absolute; top:0; bottom:0; left:38%; width:1px;
+      background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,0.14) 20%,rgba(255,255,255,0.18) 50%,rgba(255,255,255,0.10) 75%,transparent 100%);
+    }
+    .bg-hlines {
+      position:absolute; inset:0;
+      background-image:linear-gradient(rgba(255,255,255,0.055) 1px,transparent 1px);
+      background-size:100% 180px; background-position:0 90px;
+    }
+    .bg-grain {
+      position:absolute; inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size:220px; opacity:0.55; pointer-events:none;
+    }
+    .bg-vignette {
+      position:absolute; inset:0;
+      background:
+        radial-gradient(ellipse 110% 110% at 50% 50%,transparent 45%,rgba(6,12,22,0.65) 100%),
+        linear-gradient(180deg,rgba(6,12,22,0.20) 0%,transparent 15%,transparent 85%,rgba(6,12,22,0.35) 100%);
+    }
+
+    /* ══════════════════════════════════
+       CHAT WINDOW — centred premium card
+    ══════════════════════════════════ */
+    #chatbot-window {
+      position: relative; z-index: 10;
+      display: flex; flex-direction: column;
+      width: min(520px, 100vw);
+      height: 100vh;
+      margin: 0 auto;
+      background: var(--card-bg);
+      box-shadow: var(--shadow-lg);
+      border-left:  1px solid rgba(255,255,255,0.07);
+      border-right: 1px solid rgba(255,255,255,0.07);
+      overflow: hidden;
+      animation: cardIn .7s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes cardIn {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* Gold top line */
+    #chatbot-window::before {
+      content:'';
+      position:absolute; top:0; left:0; right:0; height:2px; z-index:20;
+      background:linear-gradient(90deg,transparent,var(--gold),var(--gold-lt),var(--gold),transparent);
+    }
+
+    /* ══════════════════════════════════
+       CHAT HEADER
+    ══════════════════════════════════ */
+    .chat-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 0 24px;
+      height: 72px; flex-shrink: 0;
+      background: var(--head-bg);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      position: relative;
+    }
+
+    /* Gold left accent */
+    .chat-header::before {
+      content: '';
+      position: absolute; left:0; top:0; bottom:0; width:3px;
+      background: linear-gradient(180deg, transparent, var(--gold), var(--gold-deep));
+    }
+
+    /* Bottom accent line */
+    .chat-header::after {
+      content: '';
+      position: absolute; bottom:0; left:0; right:0; height:1px;
+      background: linear-gradient(90deg,transparent,rgba(201,169,110,0.30),transparent);
+    }
+
+    .header-left { display:flex; align-items:center; gap:14px; flex:1; min-width:0; }
+
+    .header-bot {
+      width: 46px; height: 46px;
+      border-radius: 0;
+      border: 1px solid rgba(201,169,110,0.30);
+      background: rgba(201,169,110,0.10);
+      object-fit: cover; flex-shrink: 0;
+      box-shadow: 0 0 0 3px rgba(201,169,110,0.12), 2px 2px 0 rgba(0,0,0,0.30);
+    }
+
+    .header-info { display:flex; flex-direction:column; gap:3px; min-width:0; }
+
+    .bot-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; font-weight: 400;
+      color: var(--white);
+      letter-spacing: 0.5px; line-height: 1;
+    }
+    .bot-name span { font-style:italic; color:var(--gold); }
+
+    .bot-subtitle {
+      font-family: 'DM Mono', monospace;
+      font-size: 8.5px; font-weight: 500;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: var(--on-card-mid);
+    }
+
+    /* Online indicator */
+    .header-status { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 8px rgba(201,169,110,0.70);
+      animation: statusPulse 2.5s ease-in-out infinite;
+    }
+    @keyframes statusPulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%     { opacity:0.55; transform:scale(1.3); }
+    }
+    .status-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--on-card-soft);
+    }
+
+    /* ══════════════════════════════════
+       CHAT BODY
+    ══════════════════════════════════ */
+    #chat-body {
+      flex: 1; overflow-y: auto;
+      padding: 24px 22px 18px;
+      background: linear-gradient(180deg, #f0f4f8 0%, #f4f7fb 100%);
+      display: flex; flex-direction: column; gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    #chat-body::-webkit-scrollbar { width: 3px; }
+    #chat-body::-webkit-scrollbar-track { background: transparent; }
+    #chat-body::-webkit-scrollbar-thumb {
+      background: rgba(201,169,110,0.35); border-radius: 4px;
+    }
+
+    /* ══════════════════════════════════
+       QUICK-ACTION BUTTONS
+    ══════════════════════════════════ */
+    .chat-actions {
+      display: flex; gap: 10px;
+      padding: 14px 20px;
+      background: var(--card-bg);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+      position: relative;
+    }
+    /* Gold separator line */
+    .chat-actions::before {
+      content:'';
+      position:absolute; top:0; left:20%; right:20%; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(201,169,110,0.25),transparent);
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      border: none; cursor: pointer;
+      transition: all .24s cubic-bezier(.16,1,.3,1);
+      position: relative; overflow: hidden;
+    }
+
+    /* Shimmer sweep */
+    .btn::after {
+      content: '';
+      position: absolute; top:0; left:-100%; width:60%; height:100%;
+      background: linear-gradient(90deg,transparent,rgba(255,255,255,0.20),transparent);
+      transform: skewX(-15deg);
+      transition: left .55s ease;
+    }
+    .btn:hover::after { left: 160%; }
+
+    .btn.rules {
+      background: var(--head-bg);
+      color: var(--gold);
+      border: 1px solid rgba(201,169,110,0.28);
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.30);
+    }
+    .btn.rules:hover {
+      background: var(--primary-mid);
+      border-color: rgba(201,169,110,0.50);
+      transform: translateY(-2px);
+      box-shadow: 3px 4px 0 rgba(0,0,0,0.35);
+    }
+
+    .btn.guidelines {
+      background: var(--gold);
+      color: var(--ink-dark);
+      font-weight: 700;
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.30);
+    }
+    .btn.guidelines:hover {
+      background: var(--gold-lt);
+      transform: translateY(-2px);
+      box-shadow: 3px 4px 0 rgba(0,0,0,0.35);
+    }
+
+    .btn.faq {
+      background: transparent;
+      color: var(--on-card-mid);
+      border: 1px solid rgba(255,255,255,0.14);
+    }
+    .btn.faq:hover {
+      background: rgba(255,255,255,0.07);
+      color: var(--white);
+      border-color: rgba(255,255,255,0.28);
+      transform: translateY(-2px);
+    }
+
+    .btn:active { transform:translateY(0) !important; box-shadow:1px 1px 0 rgba(0,0,0,0.20) !important; }
+
+    /* ══════════════════════════════════
+       BACK ROW
+    ══════════════════════════════════ */
+    .back-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 20px 18px;
+      background: var(--head-bg);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+
+    .back-row-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg,transparent,rgba(201,169,110,0.18),transparent);
+    }
+
+    .close-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 28px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 3px; text-transform: uppercase;
+      background: rgba(255,255,255,0.06);
+      color: var(--on-card-mid);
+      border: 1px solid rgba(255,255,255,0.12);
+      cursor: pointer;
+      transition: all .24s ease;
+      text-decoration: none;
+      user-select: none;
+      position: relative; overflow: hidden;
+    }
+    .close-btn::before {
+      content:'';
+      position:absolute; top:0; left:50%; right:50%; height:1px;
+      background:var(--gold);
+      transition:left .26s,right .26s;
+    }
+    .close-btn:hover::before { left:0; right:0; }
+    .close-btn:hover {
+      background: rgba(201,169,110,0.12);
+      color: var(--gold);
+      border-color: rgba(201,169,110,0.30);
+      transform: translateX(-2px);
+    }
+    .close-btn:active { transform:translateX(0); }
+
+    .close-btn-arrow { font-size:14px; transition:transform .22s; }
+    .close-btn:hover .close-btn-arrow { transform:translateX(-3px); }
+
+    /* ══════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════ */
+    @media (max-width:540px) {
+      .chat-header { padding:0 16px; height:62px; }
+      .bot-name { font-size:17px; }
+      .chat-actions { padding:10px 14px; gap:7px; }
+      .back-row { padding:10px 14px 14px; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Background layers — slots.html exact -->
+  <div class="bg">
+    <div class="bg-depth"></div>
+    <div class="stripes">
+      <div class="stripe s1"></div><div class="stripe s2"></div>
+      <div class="stripe s3"></div><div class="stripe s4"></div>
+      <div class="stripe s5"></div><div class="stripe s6"></div>
+      <div class="se1"></div><div class="se2"></div>
+    </div>
+    <div class="bg-hlines"></div>
+    <div class="bg-grain"></div>
+    <div class="bg-vignette"></div>
+  </div>
+
+  <!-- Chat window -->
+  <div id="chatbot-window">
+
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="header-left">
+        <img src="bot.png" class="header-bot" alt="BookBot">
+        <div class="header-info">
+          <div class="bot-name">Book<span>Bot</span></div>
+          <div class="bot-subtitle">Campus Booking Assistant</div>
+        </div>
+      </div>
+      <div class="header-status">
+        <div class="status-dot"></div>
+        <span class="status-label">Online</span>
+      </div>
+    </div>
+
+    <!-- Chat messages -->
+    <div id="chat-body"></div>
+
+    <!-- Quick action buttons -->
+    <div class="chat-actions">
+      <button class="btn rules"      onclick="sendOption('rules')">Rules</button>
+      <button class="btn guidelines" onclick="sendOption('guidelines')">Guidelines</button>
+      <button class="btn faq"        onclick="sendOption('faq')">FAQ</button>
+    </div>
+
+    <!-- Back button -->
+    <div class="back-row">
+      <div class="back-row-line"></div>
+      <div class="close-btn" onclick="goBack()">
+        <span class="close-btn-arrow">&#8592;</span>
+        Back to Home
+      </div>
+      <div class="back-row-line"></div>
+    </div>
+
+  </div>
+
+  <script src="chatbot.js"></script>
+  <script>
+    function goBack() {
+      window.location.href = "../user.html";
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>APJ Hall – MBITS Venues</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Outfit:wght@200;300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════
+   PALETTE — Navy dark bg, gold accents (slots.html)
+   ═══════════════════════════════════════════ */
+:root {
+  --primary:      #19304D;
+  --primary-mid:  #1f3c5e;
+  --primary-lt:   #274d78;
+  --primary-deep: #0f1f30;
+  --white:        #ffffff;
+  --input-bg:     #f4f7fb;
+  --input-focus:  #ffffff;
+  --card-bg:      #1a3352;
+  --section-bg:   #1e3d60;
+  --head-bg:      #162c47;
+  --gold:         #c9a96e;
+  --gold-lt:      #e8cfa0;
+  --gold-deep:    #a07840;
+  --silver:       #b8bfcc;
+  --ink-dark:     #0f1f30;
+  --on-card:      rgba(255,255,255,0.88);
+  --on-card-mid:  rgba(255,255,255,0.52);
+  --on-card-soft: rgba(255,255,255,0.32);
+  --ink:          #19304D;
+  --muted:        rgba(25,48,77,0.50);
+  --border:       rgba(255,255,255,0.10);
+  --border-mid:   rgba(255,255,255,0.14);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: #19304D;
+  min-height: 100vh;
+  color: var(--on-card);
+  overflow-x: hidden;
+}
+
+/* ── BACKGROUND (mirrors slots.html exactly) ── */
+.bg {
+  position: fixed; inset: 0; z-index: 0;
+  background: #19304D;
+  overflow: hidden;
+}
+.bg-depth {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 90% 80% at 0% 0%,   rgba(31,60,94,0.70) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 100% 100%, rgba(10,18,28,0.80) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 55% at 50% 50%,  rgba(25,48,77,0.20) 0%, transparent 70%);
+}
+.stripes {
+  position: absolute; inset: -60% -20%;
+  width: 140%; height: 220%;
+  transform-origin: center center;
+  transform: rotate(-28deg);
+  pointer-events: none;
+}
+.stripe { position: absolute; top: 0; bottom: 0; }
+.stripe-1 { left: 14%;  width: 7%;  background: rgba(255,255,255,0.038); }
+.stripe-2 { left: 25%;  width: 11%; background: rgba(255,255,255,0.028); }
+.stripe-3 { left: 41%;  width: 5%;  background: rgba(255,255,255,0.048); }
+.stripe-4 { left: 55%;  width: 2%;  background: rgba(255,255,255,0.025); }
+.stripe-5 { left: 63%;  width: 6%;  background: rgba(255,255,255,0.020); }
+.stripe-6 { left: 75%;  width: 3%;  background: rgba(255,255,255,0.032); }
+.stripe-edge {
+  position: absolute; top: 0; bottom: 0; left: 22%; width: 1.5px;
+  background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.22) 15%, rgba(255,255,255,0.28) 40%, rgba(255,255,255,0.22) 65%, transparent 100%);
+}
+.stripe-edge-2 {
+  position: absolute; top: 0; bottom: 0; left: 38%; width: 1px;
+  background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.14) 20%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.10) 75%, transparent 100%);
+}
+.bg-hlines {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-size: 100% 180px;
+  background-position: 0 90px;
+}
+.bg-grain {
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 220px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.bg-vignette {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 110% 110% at 50% 50%, transparent 45%, rgba(6,12,22,0.65) 100%),
+    linear-gradient(180deg, rgba(6,12,22,0.20) 0%, transparent 15%, transparent 85%, rgba(6,12,22,0.35) 100%);
+}
+.bg-corners { position: absolute; inset: 0; pointer-events: none; }
+
+/* ── SCROLL BODY ── */
+.scroll-body {
+  position: relative; z-index: 2;
+}
+
+/* ── HEADER ── */
+header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 78px;
+  display: flex; align-items: center; justify-content: flex-start;
+  padding: 0 2.5rem;
+  background: rgba(15,31,48,0.82);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+}
+.header-brand {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 300; font-style: italic; letter-spacing: 1px;
+  color: rgba(255,255,255,0.75);
+}
+.header-brand span { color: var(--gold); font-style: normal; font-weight: 600; }
+
+.header-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: #ffffff; background: rgba(255,255,255,0.10);
+  border: 1.5px solid rgba(255,255,255,0.55);
+  font-family: 'Outfit', sans-serif;
+  font-size: 9px; letter-spacing: 3.5px; text-transform: uppercase; font-weight: 600;
+  padding: 9px 22px; cursor: pointer;
+  transition: all .28s ease;
+  backdrop-filter: blur(14px);
+}
+.header-back:hover {
+  background: rgba(255,255,255,0.22);
+  border-color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* ── HERO ── */
+.hero {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 88vh;
+  padding: 100px 2rem 4rem;
+  position: relative;
+}
+
+.hero-content {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  width: 100%; max-width: 680px;
+  padding: 3.5rem 4rem;
+  background: var(--card-bg);
+  position: relative;
+  box-shadow:
+    0 2px 0 var(--gold),
+    0 40px 100px rgba(6,12,22,0.65),
+    0 0 0 1px rgba(255,255,255,0.07) inset;
+  animation: cardIn .8s cubic-bezier(.16,1,.3,1) .2s both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-content::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--gold-lt), var(--gold), transparent);
+}
+.hero-content::after {
+  content: '';
+  position: absolute; top: 0; right: 0; bottom: 0; width: 340px;
+  background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.025) 100%);
+  pointer-events: none;
+}
+
+.eyebrow {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 9px; font-weight: 500; letter-spacing: 6px; text-transform: uppercase;
+  color: var(--on-card-mid);
+  margin-bottom: 1.2rem;
+}
+.eyebrow::before {
+  content: ""; width: 24px; height: 1px;
+  background: var(--gold);
+}
+
+.hero-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3.2rem, 6vw, 5.5rem);
+  font-weight: 300;
+  line-height: 0.90; letter-spacing: -1.5px;
+  color: var(--white);
+  text-shadow: 0 2px 80px rgba(0,0,0,0.5);
+  margin-bottom: 1rem;
+}
+.hero-heading em {
+  display: block; font-style: italic; font-weight: 300;
+  color: var(--gold);
+}
+
+.hero-desc {
+  font-size: .875rem; font-weight: 300; line-height: 1.75;
+  color: var(--on-card-mid);
+  max-width: 420px; margin-bottom: 2rem;
+}
+
+.hero-btns { display: flex; gap: 1rem; justify-content: center; }
+
+.btn-primary {
+  padding: .9rem 2.2rem;
+  background: var(--gold);
+  color: var(--primary-deep);
+  font-family: 'Outfit', sans-serif;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase;
+  border: none; cursor: pointer;
+  transition: all .28s ease;
+  position: relative; overflow: hidden;
+}
+.btn-primary::before {
+  content: '';
+  position: absolute; top: 0; left: 50%; right: 50%;
+  height: 2px; background: var(--primary-deep);
+  transition: left .28s, right .28s;
+}
+.btn-primary:hover::before { left: 0; right: 0; }
+.btn-primary:hover { background: var(--gold-lt); transform: translateY(-2px); box-shadow: 0 16px 40px rgba(6,12,22,0.45); }
+
+.btn-ghost {
+  padding: .9rem 1.8rem;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.28);
+  color: var(--on-card);
+  font-family: 'Outfit', sans-serif;
+  font-size: 9.5px; font-weight: 500; letter-spacing: 4px; text-transform: uppercase;
+  cursor: pointer;
+  transition: all .28s ease;
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.16);
+  border-color: rgba(255,255,255,0.55);
+  transform: translateY(-2px);
+}
+
+/* ── FEATURES SECTION ── */
+.features-section {
+  position: relative; z-index: 2;
+  padding: 6rem 2rem;
+  background: rgba(15,31,48,0.72);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.container { max-width: 1120px; margin: auto; padding: 0 1rem; }
+
+.sec-header { margin-bottom: 3.5rem; }
+.sec-eyebrow {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 9px; letter-spacing: 5px; text-transform: uppercase;
+  color: var(--gold); font-weight: 500; margin-bottom: .8rem;
+}
+.sec-eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--gold); }
+
+.sec-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.2rem, 4vw, 3.5rem);
+  font-weight: 300; letter-spacing: -1px; line-height: .95;
+  color: var(--white);
+}
+.sec-title span { font-style: italic; color: var(--gold); }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.feat-card {
+  background: var(--card-bg);
+  padding: 2.5rem;
+  position: relative; overflow: hidden;
+  transition: background .3s;
+}
+.feat-card::after {
+  content: ""; position: absolute;
+  bottom: 0; left: 0; width: 0; height: 2px;
+  background: var(--gold);
+  transition: width .5s ease;
+}
+.feat-card:hover { background: var(--section-bg); }
+.feat-card:hover::after { width: 100%; }
+.feat-icon { font-size: 1.8rem; margin-bottom: 1rem; display: block; }
+.feat-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem; font-weight: 600; letter-spacing: .2px;
+  color: var(--on-card); margin-bottom: .5rem;
+}
+.feat-desc {
+  font-size: .82rem; font-weight: 300;
+  color: var(--on-card-mid); line-height: 1.75;
+}
+
+/* ── RATING SECTION ── */
+.rating-section {
+  position: relative; z-index: 2;
+  overflow: hidden;
+  min-height: 480px;
+  display: flex; align-items: stretch;
+  background: var(--head-bg);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.rating-inner {
+  width: 100%; max-width: 1120px;
+  margin: auto; padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+}
+
+.rating-display {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 5rem 4rem 5rem 0;
+  border-right: 1px solid rgba(201,169,110,0.20);
+}
+
+.sec-eyebrow-light {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 9px; letter-spacing: 5px; text-transform: uppercase;
+  color: var(--gold); font-weight: 500; margin-bottom: 1.5rem;
+}
+.sec-eyebrow-light::before { content: ""; width: 24px; height: 1px; background: var(--gold); }
+
+.rating-headline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3rem, 5.5vw, 5.5rem);
+  font-weight: 300; letter-spacing: -2px; line-height: .90;
+  color: var(--white);
+  margin-bottom: 2rem;
+}
+.rating-headline em { display: block; font-style: italic; color: var(--gold); }
+
+.rating-num-wrap {
+  display: inline-flex; align-items: flex-end; gap: 6px;
+  background: var(--gold);
+  padding: .6rem 1.4rem .5rem;
+}
+.rating-big {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.8rem; line-height: 1; color: var(--primary-deep); font-weight: 600;
+}
+.rating-denom {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem; color: rgba(15,31,48,0.6); padding-bottom: .3rem;
+}
+.rating-stars {
+  font-size: 1rem; letter-spacing: 2px;
+  color: var(--primary-deep); margin-left: .5rem; padding-bottom: .3rem;
+}
+.rating-meta {
+  font-family: 'Outfit', sans-serif;
+  font-size: .6rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--on-card-mid); margin-top: .8rem;
+}
+
+.rating-info {
+  background: rgba(26,51,82,0.72);
+  backdrop-filter: blur(18px);
+  border-left: 1px solid rgba(201,169,110,0.12);
+  padding: 4rem 3rem;
+  display: flex; flex-direction: column; justify-content: center;
+}
+
+.sec-eyebrow-sm {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 9px; letter-spacing: 5px; text-transform: uppercase;
+  color: var(--gold); font-weight: 500; margin-bottom: .8rem;
+}
+.sec-eyebrow-sm::before { content: ""; width: 24px; height: 1px; background: var(--gold); }
+
+.sec-title-light {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 300; letter-spacing: -.5px; line-height: .95;
+  color: var(--white); margin-bottom: .5rem;
+}
+.sec-title-light span { font-style: italic; color: var(--gold); }
+
+.facilities-list { list-style: none; margin-top: 1.5rem; }
+.facilities-list li {
+  display: flex; align-items: center; gap: 1rem;
+  padding: .75rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  font-family: 'Outfit', sans-serif;
+  font-size: .85rem; color: var(--on-card-mid);
+  transition: all .28s;
+}
+.facilities-list li:hover { color: var(--gold); padding-left: 8px; }
+.facilities-list li::before {
+  content: ""; width: 6px; height: 6px;
+  background: var(--gold); flex-shrink: 0; opacity: .85;
+}
+
+.btn-book-full {
+  display: block; width: 100%; margin-top: 2rem;
+  padding: 1.2rem 2rem;
+  background: var(--gold);
+  color: var(--primary-deep);
+  font-family: 'Outfit', sans-serif;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase;
+  text-align: center; border: none; cursor: pointer;
+  position: relative; overflow: hidden;
+  transition: all .28s ease;
+}
+.btn-book-full::before {
+  content: '';
+  position: absolute; top: 0; left: 50%; right: 50%;
+  height: 2px; background: var(--primary-deep);
+  transition: left .28s, right .28s;
+}
+.btn-book-full:hover::before { left: 0; right: 0; }
+.btn-book-full:hover { background: var(--gold-lt); transform: translateY(-2px); box-shadow: 0 16px 40px rgba(6,12,22,0.45); }
+
+/* ── GALLERY ── */
+.gallery-section {
+  position: relative; z-index: 2;
+  padding: 5.5rem 0;
+  background: rgba(22,44,71,0.85);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.gallery-intro {
+  max-width: 1120px; margin: auto; padding: 0 2rem 3rem;
+  display: flex; align-items: flex-end; justify-content: space-between;
+}
+.premium-slider { overflow: hidden; position: relative; }
+.premium-slider::before,
+.premium-slider::after {
+  content: ""; position: absolute;
+  top: 0; bottom: 0; width: 140px; z-index: 2; pointer-events: none;
+}
+.premium-slider::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(22,44,71,0.90), transparent);
+}
+.premium-slider::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(22,44,71,0.90), transparent);
+}
+.premium-track {
+  display: flex; gap: 16px; width: max-content;
+  animation: scroll 30s linear infinite; padding: .4rem 0;
+}
+.premium-track img {
+  width: 310px; height: 200px; object-fit: cover;
+  filter: brightness(.70) saturate(.65);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all .5s cubic-bezier(.16,1,.3,1);
+}
+.premium-track img:hover {
+  transform: scale(1.07) translateY(-8px);
+  filter: brightness(.88) saturate(.90);
+  border-color: var(--gold);
+  box-shadow: 0 24px 50px rgba(6,12,22,0.45);
+}
+@keyframes scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── BACK SECTION ── */
+.back-section {
+  position: relative; z-index: 2; text-align: center;
+  padding: 3.5rem 2rem 5rem;
+  background: rgba(15,31,48,0.80);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.btn-back {
+  padding: .9rem 2.8rem; background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.25); color: var(--on-card);
+  font-family: 'Outfit', sans-serif; font-size: 9px; font-weight: 600;
+  letter-spacing: 5px; text-transform: uppercase;
+  cursor: pointer; transition: all .28s; position: relative; overflow: hidden;
+}
+.btn-back::before {
+  content: '';
+  position: absolute; top: 0; left: 50%; right: 50%;
+  height: 1px; background: var(--gold);
+  transition: left .28s, right .28s;
+}
+.btn-back:hover::before { left: 0; right: 0; }
+.btn-back:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.50);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(6,12,22,0.35);
+}
+
+/* ── REVEAL ── */
+.reveal { opacity: 0; transform: translateY(48px); transition: all 1.1s cubic-bezier(.16,1,.3,1); }
+.reveal.active { opacity: 1; transform: translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 960px) {
+  .hero-content { padding: 2.5rem 2rem; max-width: 98vw; }
+  .hero-heading { font-size: 3.5rem; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .rating-inner { grid-template-columns: 1fr; }
+  .rating-display { padding: 4rem 2rem 2rem; border-right: none; border-bottom: 1px solid rgba(201,169,110,0.20); }
+  .rating-info { padding: 3rem 2rem 4rem; }
+  .gallery-intro { flex-direction: column; gap: 1.5rem; align-items: flex-start; }
+}
+@media (max-width: 600px) {
+  .features-grid { grid-template-columns: 1fr; }
+  .hero-btns { flex-direction: column; }
+  .hero-heading { font-size: 3rem; }
+  header { padding: 0 1.25rem; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ══ BACKGROUND (mirrors slots.html exactly) ══ -->
+<div class="bg">
+  <div class="bg-depth"></div>
+  <div class="stripes">
+    <div class="stripe stripe-1"></div>
+    <div class="stripe stripe-2"></div>
+    <div class="stripe stripe-3"></div>
+    <div class="stripe stripe-4"></div>
+    <div class="stripe stripe-5"></div>
+    <div class="stripe stripe-6"></div>
+    <div class="stripe-edge"></div>
+    <div class="stripe-edge-2"></div>
+  </div>
+  <div class="bg-hlines"></div>
+  <svg class="bg-corners" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <polyline points="70,48 24,48 24,4 70,4"   fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>
+    <polyline points="1370,4 1416,4 1416,48 1370,48" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+    <polyline points="24,852 24,896 70,896"     fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+    <polyline points="1416,852 1416,896 1370,896" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <circle cx="720" cy="42" r="2" fill="rgba(255,255,255,0.18)"/>
+    <circle cx="24"  cy="450" r="2" fill="rgba(255,255,255,0.12)"/>
+    <circle cx="1416" cy="450" r="2" fill="rgba(255,255,255,0.12)"/>
+    <line x1="720" y1="30" x2="720" y2="870" stroke="rgba(255,255,255,0.022)" stroke-width="1" stroke-dasharray="4 20"/>
+    <line x1="80"  y1="4" x2="680" y2="4"    stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+    <line x1="760" y1="4" x2="1360" y2="4"   stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+    <polygon points="720,34 727,41 720,48 713,41" fill="none" stroke="rgba(255,255,255,0.20)" stroke-width="1"/>
+  </svg>
+  <div class="bg-grain"></div>
+  <div class="bg-vignette"></div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;">
+    <div class="header-brand">Book<span>It</span></div>
+    <button class="header-back" onclick="goBack()">&#x2190; All Venues</button>
+  </div>
+</header>
+
+
+<!-- ══ SCROLL BODY ══ -->
+<div class="scroll-body">
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="eyebrow">MBITS Venues Facility</div>
+      <h1 class="hero-heading">
+        APJ
+        <em>Hall</em>
+      </h1>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="bookNow()"><span>📅 Book Slot</span></button>
+        <button class="btn-ghost" onclick="document.querySelector('.gallery-section').scrollIntoView({behavior:'smooth'})">View Gallery</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FEATURES ── -->
+  <section class="features-section reveal">
+    <div class="container">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Top-quality facilities</div>
+        <div class="sec-title">Facility <span>Features</span></div>
+      </div>
+      <div class="features-grid">
+        <div class="feat-card">
+          <span class="feat-icon">🪑</span>
+          <div class="feat-title">150+ Seating Capacity</div>
+          <p class="feat-desc">Spacious hall with comfortable seating, ideal for large seminars and institutional gatherings.</p>
+        </div>
+        <div class="feat-card">
+          <span class="feat-icon">🎓</span>
+          <div class="feat-title">Seminars &amp; Workshops</div>
+          <p class="feat-desc">Purpose-built layout designed for professional academic events, talks, and interactive workshops.</p>
+        </div>
+        <div class="feat-card">
+          <span class="feat-icon">📽</span>
+          <div class="feat-title">Projector &amp; Sound System</div>
+          <p class="feat-desc">Full HD projector with surround sound for crystal-clear presentations and media playback.</p>
+        </div>
+        <div class="feat-card">
+          <span class="feat-icon">❄️</span>
+          <div class="feat-title">Air-Conditioned Hall</div>
+          <p class="feat-desc">Climate-controlled environment ensuring comfort throughout all-day events and sessions.</p>
+        </div>
+        <div class="feat-card">
+          <span class="feat-icon">🕘</span>
+          <div class="feat-title">Available 9 AM – 4 PM</div>
+          <p class="feat-desc">Flexible morning-to-afternoon booking windows to suit academic and organisational schedules.</p>
+        </div>
+        <div class="feat-card">
+          <span class="feat-icon">📅</span>
+          <div class="feat-title">Instant Booking</div>
+          <p class="feat-desc">Reserve the hall in seconds — choose your slot, confirm, and you're ready to go.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── RATING ── -->
+  <section class="rating-section reveal">
+    <div class="rating-inner">
+      <div class="rating-display">
+        <div class="sec-eyebrow-light">MBITS Venues</div>
+        <div class="rating-headline">User<em>Rating</em></div>
+        <div class="rating-num-wrap">
+          <div class="rating-big" id="avg-rating">—</div>
+          <div class="rating-denom">/5</div>
+          <div class="rating-stars">★★★★★</div>
+        </div>
+        <div class="rating-meta" id="review-count">Loading…</div>
+      </div>
+      <div class="rating-info">
+        <div class="sec-eyebrow-sm">Everything Included</div>
+        <div class="sec-title-light">What You <span>Get</span></div>
+        <ul class="facilities-list">
+          <li>150+ seating capacity</li>
+          <li>Ideal for seminars &amp; workshops</li>
+          <li>Projector &amp; sound system</li>
+          <li>Air-conditioned hall</li>
+          <li>Available 9:00 AM – 4:00 PM</li>
+        </ul>
+        <button class="btn-book-full" onclick="bookNow()">
+          <span>📅 &nbsp; Book Your Slot Now</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── GALLERY ── -->
+  <section class="gallery-section reveal">
+    <div class="gallery-intro">
+      <div>
+        <div class="sec-eyebrow">See The Space</div>
+        <div class="sec-title">Facility <span>Gallery</span></div>
+      </div>
+    </div>
+    <div class="premium-slider">
+      <div class="premium-track">
+      <img src="images/apj1.jpeg" alt="Football Ground 1">
+      <img src="images/apj 2.jpeg" alt="Football Ground 2">
+      <img src="images/apj3.jpeg" alt="Football Ground 3">
+      <img src="images/apj4.jpeg" alt="Football Ground 4">
+      <img src="images/apj5.jpeg" alt="Football Ground 5">
+      <!-- duplicate set for seamless loop -->
+      <img src="images/apj1.jpeg" alt="Football Ground 1">
+      <img src="images/apj 2.jpeg" alt="Football Ground 2">
+      <img src="images/apj3.jpeg" alt="Football Ground 3">
+      <img src="images/apj4.jpeg" alt="Football Ground 4">
+      <img src="images/apj5.jpeg" alt="Football Ground 5">
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BACK ── -->
+  <div class="back-section reveal">
+    <button class="btn-back" onclick="goBack()">← Return to All Venues</button>
+  </div>
+
+</div><!-- /scroll-body -->
+
+<!-- ══ UI SCRIPTS ══ -->
+<script>
+const reveals = document.querySelectorAll('.reveal');
+function revealOnScroll(){
+  const trigger = window.innerHeight * 0.88;
+  reveals.forEach(el => {
+    if(el.getBoundingClientRect().top < trigger) el.classList.add('active');
+  });
+}
+window.addEventListener('scroll', revealOnScroll, {passive:true});
+revealOnScroll();
+</script>
+
+<!-- 🔒 SCRIPT — UNTOUCHED -->
+<script type="module">
+  import { auth, db } from "./firebase.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const VENUE_SLUG = "apj-hall";
+
+  onAuthStateChanged(auth, u => {
+    if(!u){
+      location.href = "login.html";
+      return;
+    }
+    loadRating();
+  });
+
+  async function loadRating() {
+    const el = document.getElementById("avg-rating");
+
+    const q = query(
+      collection(db,"feedback"),
+      where("facility","==",VENUE_SLUG)
+    );
+
+    const snap = await getDocs(q);
+
+    if(snap.empty){
+      el.innerText="No ratings yet";
+      return;
+    }
+
+    let t=0,c=0;
+
+    snap.forEach(d=>{
+      const v=Object.values(d.data().ratings||{});
+      if(v.length){
+        t+=v.reduce((a,b)=>a+b,0)/v.length;
+        c++;
+      }
+    });
+
+    if(c>0){
+      el.innerText=`⭐ ${(t/c).toFixed(1)} (${c} reviews)`;
+    }else{
+      el.innerText="No ratings yet";
+    }
+  }
+
+  window.bookNow=()=>{
+    localStorage.removeItem("selectedSport");
+    localStorage.setItem("selectedVenue",VENUE_SLUG);
+    location.href="slots.html";
+  };
+
+  window.goBack=()=>location.href="venues.html";
+</script>
+
+</body>
+</html>

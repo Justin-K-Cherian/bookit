@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - BookIt</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --g950: #021a0d;
+  --g900: #052e16;
+  --g800: #064e3b;
+  --g700: #065f46;
+  --g600: #047857;
+  --g500: #059669;
+  --g400: #10b981;
+  --g300: #34d399;
+  --g200: #6ee7b7;
+  --g100: #a7f3d0;
+  --g50:  #d1fae5;
+  --g25:  #ecfdf5;
+  --g10:  #f0fdf4;
+  --w:    #ffffff;
+  --s900: #0f172a;
+  --s800: #1e293b;
+  --s700: #334155;
+  --s600: #475569;
+  --s500: #64748b;
+  --s400: #94a3b8;
+  --s300: #cbd5e1;
+  --s200: #e2e8f0;
+  --s100: #f1f5f9;
+  --s50:  #f8fafc;
+  --r500: #ef4444;
+  --r100: #fee2e2;
+  --r50:  #fef2f2;
+  --amber: #d97706;
+  --fd: 'DM Serif Display', serif;
+  --fb: 'DM Sans', sans-serif;
+  --shadow-sm: 0 1px 3px rgba(6,78,59,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 16px rgba(6,78,59,.10), 0 2px 6px rgba(0,0,0,.04);
+  --shadow-lg: 0 12px 36px rgba(6,78,59,.14), 0 4px 12px rgba(0,0,0,.06);
+  --shadow-xl: 0 24px 56px rgba(6,78,59,.18), 0 8px 20px rgba(0,0,0,.08);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: var(--fb);
+  background: var(--g10);
+  color: var(--s800);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── TOPBAR ─────────────────────────────────────────── */
+.topbar {
+  background: var(--w);
+  border-bottom: 1px solid var(--g50);
+  padding: 0 40px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 0 var(--g50), var(--shadow-sm);
+}
+.tl { display: flex; align-items: center; gap: 16px; animation: slideRight .5s ease both; }
+.bico {
+  width: 42px; height: 42px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--g400) 0%, var(--g700) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 2px 8px rgba(5,150,105,.35);
+}
+.brand-group { display: flex; flex-direction: column; }
+.bn   { font-family: var(--fd); font-size: 19px; color: var(--g900); line-height: 1.1; letter-spacing: -.01em; }
+.bsub { font-size: 10.5px; font-weight: 600; color: var(--g500); letter-spacing: .1em; text-transform: uppercase; }
+.topbar-divider { width: 1px; height: 28px; background: var(--g50); }
+.portal-pill {
+  background: var(--g25);
+  border: 1.5px solid var(--g100);
+  color: var(--g700);
+  font-size: 12px; font-weight: 700;
+  padding: 5px 14px; border-radius: 20px;
+  letter-spacing: .04em;
+}
+.tr { display: flex; align-items: center; gap: 12px; animation: slideLeft .5s ease both; }
+.up {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--g10);
+  border: 1.5px solid var(--g50);
+  border-radius: 32px;
+  padding: 5px 14px 5px 5px;
+  transition: border-color .18s, background .18s;
+  cursor: default;
+}
+.up:hover { border-color: var(--g200); background: var(--g25); }
+.ua {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--g400), var(--g700));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: white;
+  flex-shrink: 0;
+}
+.ue  { font-size: 13.5px; font-weight: 600; color: var(--s700); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ur  { font-size: 11px; font-weight: 500; color: var(--g600); }
+.lob {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--w);
+  border: 1.5px solid var(--s200);
+  color: var(--s600);
+  padding: 8px 16px; border-radius: 8px;
+  font-family: var(--fb); font-size: 13.5px; font-weight: 600;
+  cursor: pointer; transition: all .18s;
+}
+.lob:hover { background: var(--r50); border-color: var(--r100); color: var(--r500); }
+
+/* ── LAYOUT ─────────────────────────────────────────── */
+.page-shell { display: flex; min-height: calc(100vh - 68px); }
+.main { flex: 1; padding: 40px 48px 80px; overflow-x: hidden; }
+
+/* ── BREADCRUMB ─────────────────────────────────────── */
+.crumb {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--s400); margin-bottom: 28px;
+  font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  animation: fadeUp .4s ease both;
+}
+.cs { color: var(--g300); }
+.cc { color: var(--g700); font-weight: 800; }
+
+/* ── WELCOME BANNER ─────────────────────────────────── */
+.welcome {
+  background: var(--g900);
+  border-radius: 16px; padding: 36px 40px;
+  margin-bottom: 36px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 24px;
+  box-shadow: var(--shadow-xl);
+  animation: fadeUp .4s .05s ease both;
+  position: relative; overflow: hidden;
+}
+.welcome::before {
+  content: '';
+  position: absolute; right: -60px; top: -60px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(52,211,153,.12) 0%, transparent 70%);
+}
+.welcome::after {
+  content: '';
+  position: absolute; right: 60px; bottom: -80px;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(16,185,129,.08) 0%, transparent 70%);
+}
+.welcome-bg-pattern {
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 28px, rgba(255,255,255,.02) 28px, rgba(255,255,255,.02) 29px
+  ),
+  repeating-linear-gradient(
+    90deg, transparent, transparent 28px, rgba(255,255,255,.02) 28px, rgba(255,255,255,.02) 29px
+  );
+}
+.welcome-text { position: relative; z-index: 1; }
+.welcome-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--g300); margin-bottom: 12px;
+  background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.2);
+  padding: 4px 12px; border-radius: 20px;
+}
+.welcome-text h2 {
+  font-family: var(--fd);
+  font-size: 30px; color: white; margin-bottom: 10px;
+  line-height: 1.2;
+}
+.welcome-text p {
+  font-size: 14.5px; color: rgba(255,255,255,.6); line-height: 1.7; font-weight: 400;
+}
+.welcome-icon {
+  font-size: 62px; opacity: .9; position: relative; z-index: 1;
+  filter: drop-shadow(0 4px 16px rgba(52,211,153,.3));
+  animation: float 4s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+/* ── PAGE HEADER ────────────────────────────────────── */
+.ph { margin-bottom: 30px; animation: fadeUp .4s .1s ease both; }
+.pt {
+  font-family: var(--fd);
+  font-size: 38px; font-weight: 400;
+  color: var(--g900); letter-spacing: -.02em; line-height: 1.1;
+}
+.pt em { font-style: italic; color: var(--g500); }
+.ps { font-size: 15px; color: var(--s500); margin-top: 8px; font-weight: 400; }
+
+/* ── SECTION DIVIDER ────────────────────────────────── */
+.dr  { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; animation: fadeUp .4s .12s ease both; }
+.dl  { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--g600); white-space: nowrap; }
+.dln { flex: 1; height: 1px; background: linear-gradient(90deg, var(--g100), transparent); }
+
+/* ── STAT BANNER ────────────────────────────────────── */
+.stat-banner {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 16px; margin-bottom: 36px;
+  animation: fadeUp .4s .12s ease both;
+}
+.stat-card {
+  background: var(--w);
+  border: 1.5px solid var(--g50);
+  border-radius: 12px; padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+  position: relative; overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--g400), var(--g300));
+}
+.stat-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--g600); margin-bottom: 10px;
+}
+.stat-val {
+  font-family: var(--fd);
+  font-size: 26px; font-weight: 400;
+  color: var(--g800); line-height: 1;
+}
+.stat-sub { font-size: 12.5px; color: var(--s500); margin-top: 6px; font-weight: 400; }
+
+/* ── DASHBOARD CARDS ────────────────────────────────── */
+.dg {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.dc {
+  background: var(--w);
+  border: 1.5px solid var(--g50);
+  border-radius: 14px; padding: 24px 22px 20px;
+  cursor: pointer;
+  transition: transform .22s, box-shadow .22s, border-color .22s;
+  box-shadow: var(--shadow-sm);
+  position: relative; overflow: hidden;
+  animation: fadeUp .5s ease both;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.dc:nth-child(1) { animation-delay: .08s; }
+.dc:nth-child(2) { animation-delay: .13s; }
+.dc:nth-child(3) { animation-delay: .18s; }
+.dc:nth-child(4) { animation-delay: .23s; }
+.dc:nth-child(5) { animation-delay: .28s; }
+.dc::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(16,185,129,.04) 0%, transparent 60%);
+  opacity: 0; transition: opacity .22s;
+}
+.dc:hover::before { opacity: 1; }
+.dc::after {
+  content: ''; position: absolute;
+  bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--g400), var(--g300));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .25s ease;
+}
+.dc:hover::after { transform: scaleX(1); }
+.dc:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--g100);
+}
+.ci {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: var(--g25);
+  border: 1.5px solid var(--g100);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; transition: background .2s, transform .2s;
+  flex-shrink: 0;
+}
+.dc:hover .ci { background: var(--g50); transform: scale(1.05); }
+.ct { font-size: 16px; font-weight: 700; color: var(--g900); margin-bottom: 4px; }
+.cd { font-size: 13.5px; color: var(--s500); line-height: 1.55; font-weight: 400; }
+.ca {
+  margin-top: auto; align-self: flex-end;
+  font-size: 13px; font-weight: 700; color: var(--g500);
+  display: flex; align-items: center; gap: 4px;
+  opacity: 0; transform: translateX(-6px); transition: all .2s;
+}
+.dc:hover .ca { opacity: 1; transform: translateX(0); }
+
+/* ── PASSWORD OVERLAY ───────────────────────────────── */
+.password-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(5,46,22,.55);
+  backdrop-filter: blur(12px);
+  justify-content: center; align-items: center;
+  z-index: 9999;
+}
+.password-box {
+  background: var(--w);
+  border: 1.5px solid var(--g50);
+  border-radius: 20px; padding: 0;
+  width: 90%; max-width: 420px;
+  box-shadow: var(--shadow-xl);
+  animation: popIn .4s cubic-bezier(.175,.885,.32,1.275) both;
+  overflow: hidden;
+}
+@keyframes popIn {
+  from { opacity:0; transform: translateY(24px) scale(.96); }
+  to   { opacity:1; transform: none; }
+}
+.pass-header {
+  background: linear-gradient(135deg, var(--g900), var(--g700));
+  padding: 28px 32px 22px;
+}
+.pass-header h3 {
+  font-family: var(--fd);
+  font-size: 22px; color: white; margin-bottom: 5px;
+}
+.pass-sub { font-size: 13.5px; color: rgba(255,255,255,.65); font-weight: 400; }
+.pass-body { padding: 24px 32px 28px; }
+.req-list {
+  background: var(--g10); border: 1.5px solid var(--g50);
+  border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; list-style: none;
+}
+.req-list li {
+  font-size: 13px; color: var(--g800); margin: 5px 0;
+  padding-left: 20px; position: relative; font-weight: 500;
+}
+.req-list li::before {
+  content: '✓'; position: absolute; left: 0;
+  color: var(--g400); font-weight: 800; font-size: 11px; line-height: 1.7;
+}
+.password-box input {
+  width: 100%; padding: 12px 14px; margin: 6px 0;
+  background: var(--g10); border: 1.5px solid var(--g50);
+  border-radius: 9px;
+  color: var(--s900); font-family: var(--fb); font-size: 14.5px; font-weight: 400;
+  outline: none; transition: border-color .18s, box-shadow .18s;
+}
+.password-box input:focus {
+  border-color: var(--g400); background: var(--w);
+  box-shadow: 0 0 0 3px rgba(16,185,129,.12);
+}
+.password-box input::placeholder { color: var(--s400); }
+.password-box button {
+  width: 100%; padding: 13px; margin-top: 14px;
+  background: linear-gradient(135deg, var(--g500), var(--g800));
+  color: white; border: none; border-radius: 10px;
+  font-family: var(--fb); font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all .18s; letter-spacing: .02em;
+  box-shadow: 0 3px 10px rgba(6,78,59,.3);
+}
+.password-box button:hover {
+  background: linear-gradient(135deg, var(--g600), var(--g900));
+  box-shadow: 0 5px 16px rgba(6,78,59,.4);
+  transform: translateY(-1px);
+}
+#passError { color: var(--r500); font-size: 12.5px; margin: 6px 0; font-weight: 600; }
+
+/* ── UTILITY ────────────────────────────────────────── */
+.hidden { display: none !important; }
+
+@keyframes slideRight { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:none} }
+@keyframes slideLeft  { from{opacity:0;transform:translateX(16px)}  to{opacity:1;transform:none} }
+@keyframes fadeUp     { from{opacity:0;transform:translateY(14px)}  to{opacity:1;transform:none} }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--g10); }
+::-webkit-scrollbar-thumb { background: var(--g100); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--g200); }
+
+@media (max-width: 768px) {
+  .topbar { padding: 0 18px; }
+  .ue { max-width: 100px; }
+  .main { padding: 24px 18px 60px; }
+  .stat-banner { grid-template-columns: 1fr; }
+  .welcome-icon { display: none; }
+  .welcome { grid-template-columns: 1fr; }
+  .pt { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD OVERLAY -->
+<div id="passwordOverlay" class="password-overlay">
+  <div class="password-box">
+    <div class="pass-header">
+      <h3>🔐 Change Admin Password</h3>
+      <p class="pass-sub">Please set a new secure password to continue.</p>
+    </div>
+    <div class="pass-body">
+      <ul class="req-list">
+        <li>Minimum 6 characters</li>
+        <li>At least one uppercase letter</li>
+        <li>At least one lowercase letter</li>
+        <li>At least one number</li>
+        <li>At least one special character</li>
+      </ul>
+      <input type="password" id="newPass" placeholder="New Password">
+      <input type="password" id="confirmPass" placeholder="Confirm Password">
+      <div id="passError"></div>
+      <button onclick="updatePasswordNow()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tl">
+    <div class="bico">🎯</div>
+    <div class="brand-group">
+      <div class="bn">BookIt</div>
+      <div class="bsub">Venue Management</div>
+    </div>
+    <div class="topbar-divider"></div>
+    <span class="portal-pill">🏛️ Venue Admin Portal</span>
+  </div>
+  <div class="tr">
+    <div class="up">
+      <div class="ua">A</div>
+      <div>
+        <div class="ue" id="adminEmail">Loading…</div>
+        <div class="ur" id="adminRole">Venue Admin</div>
+      </div>
+    </div>
+    <button class="lob" onclick="logoutNow()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </button>
+  </div>
+</div>
+
+<div class="page-shell">
+  <main class="main">
+
+    <div class="crumb">
+      <span>BookIt</span>
+      <span class="cs">›</span>
+      <span class="cc">Admin Dashboard</span>
+    </div>
+
+    <!-- WELCOME BANNER -->
+    <div class="welcome">
+      <div class="welcome-bg-pattern"></div>
+      <div class="welcome-text">
+        <div class="welcome-eyebrow">✦ Admin Portal</div>
+        <h2>Welcome back, Admin 👋</h2>
+        <p>You are managing your venue through the BookIt Faculty Portal.<br>Use the modules below to handle bookings, feedback, and more.</p>
+      </div>
+      <div class="welcome-icon">🎯</div>
+    </div>
+
+    <div class="ph">
+      <h1 class="pt">Admin <em>Dashboard</em></h1>
+      <p class="ps">Manage your venue efficiently from one central place.</p>
+    </div>
+
+    <div class="stat-banner">
+      <div class="stat-card">
+        <div class="stat-label">Portal Type</div>
+        <div class="stat-val" id="portalType">Venue</div>
+        <div class="stat-sub">Faculty management view</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Access Level</div>
+        <div class="stat-val">Admin</div>
+        <div class="stat-sub">Full management rights</div>
+      </div>
+    </div>
+
+    <div class="dr">
+      <span class="dl">Quick Access</span>
+      <div class="dln"></div>
+    </div>
+
+    <div class="dg">
+      <div class="dc" onclick="location.href='request.html'">
+        <div class="ci">📥</div>
+        <div class="card-body">
+          <div class="ct">Requests</div>
+          <div class="cd">View and manage pending booking requests</div>
+        </div>
+        <div class="ca">View all →</div>
+      </div>
+      <div class="dc" onclick="location.href='vbookings.html'">
+        <div class="ci">📅</div>
+        <div class="card-body">
+          <div class="ct">Bookings</div>
+          <div class="cd">View and manage venue bookings</div>
+        </div>
+        <div class="ca">View all →</div>
+      </div>
+      <div class="dc" onclick="location.href='vfeedback.html'">
+        <div class="ci">💬</div>
+        <div class="card-body">
+          <div class="ct">Feedback</div>
+          <div class="cd">View user feedback and suggestions</div>
+        </div>
+        <div class="ca">View all →</div>
+      </div>
+      <div class="dc" onclick="location.href='vreports.html'">
+        <div class="ci">📊</div>
+        <div class="card-body">
+          <div class="ct">Reports &amp; Analytics</div>
+          <div class="cd">View usage statistics and reports</div>
+        </div>
+        <div class="ca">View all →</div>
+      </div>
+      <div class="dc" onclick="location.href='announcements-admin.html'">
+        <div class="ci">📢</div>
+        <div class="card-body">
+          <div class="ct">Announcements</div>
+          <div class="cd">Create and manage user announcements</div>
+        </div>
+        <div class="ca">View all →</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ✅ FIX: Single unified module script.
+     Firebase init and all logic are merged into one <script type="module">.
+     This eliminates the race condition where two separate module scripts
+     could run in undefined order, causing auth/db to be undefined.
+     All original logic is completely untouched. -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDYD768C9UY7PHq8BrQLN8paau3LmXAnFs",
+  authDomain: "bookit-56e35.firebaseapp.com",
+  projectId: "bookit-56e35",
+  storageBucket: "bookit-56e35.appspot.com",
+  messagingSenderId: "813441391899",
+  appId: "1:813441391899:web:d5bf9d33c6b81c983a87be"
+};
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+let adminVenue = sessionStorage.getItem('adminVenue');
+const adminEmail = sessionStorage.getItem('adminEmail');
+const userRole = sessionStorage.getItem('userRole');
+
+if (adminVenue && userRole === 'admin') {
+    document.getElementById("adminEmail").textContent = adminEmail || 'Admin';
+    const av=document.querySelector('.ua');if(av&&adminEmail)av.textContent=adminEmail[0].toUpperCase();
+    const venueName = formatVenueName(adminVenue);
+    document.getElementById("adminRole").textContent = `${venueName} Admin`;
+    document.getElementById("portalType").textContent = venueName;
+}
+
+onAuthStateChanged(auth, async user => {
+    if (!user) { sessionStorage.clear(); return location.href = "index.html"; }
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists() || snap.data().role !== "admin") {
+        alert("Access denied"); sessionStorage.clear(); return location.href = "index.html";
+    }
+    const userData = snap.data();
+    document.getElementById("adminEmail").textContent = user.email;
+    const av=document.querySelector('.ua');if(av)av.textContent=user.email[0].toUpperCase();
+    const venueSlug = userData.venueslug || userData.venueSlug;
+    if (!adminVenue) {
+        adminVenue = venueSlug;
+        if (adminVenue) {
+            sessionStorage.setItem('adminVenue', adminVenue);
+            sessionStorage.setItem('adminEmail', user.email);
+            sessionStorage.setItem('adminUid', user.uid);
+            sessionStorage.setItem('userRole', 'admin');
+        }
+    }
+    if (adminVenue) {
+        const venueName = formatVenueName(adminVenue);
+        document.getElementById("adminRole").textContent = `${venueName} Admin`;
+        document.getElementById("portalType").textContent = venueName;
+    }
+    if (userData.mustChangePassword === true) {
+        passwordOverlay.style.display = "flex";
+    }
+});
+
+function formatVenueName(slug) {
+    if (!slug) return "Venue";
+    return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+window.updatePasswordNow = async () => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/;
+    if (!regex.test(newPass.value)) { passError.innerText = "Password does not meet requirements"; return; }
+    if (newPass.value !== confirmPass.value) { passError.innerText = "Passwords do not match"; return; }
+    try {
+        await updatePassword(auth.currentUser, newPass.value);
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { mustChangePassword: false });
+        passwordOverlay.style.display = "none";
+        alert("✅ Password updated successfully!");
+    } catch (error) { passError.innerText = "Error: " + error.message; }
+};
+
+window.logoutNow = () => {
+    sessionStorage.clear();
+    signOut(auth).then(() => location.href = "index.html");
+};
+</script>
+
+</body>
+</html>

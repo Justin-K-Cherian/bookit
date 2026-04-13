@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sports Admin – BookIt</title>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyDYD768C9UY7PHq8BrQLN8paau3LmXAnFs",
+  authDomain: "bookit-56e35.firebaseapp.com",
+  projectId: "bookit-56e35",
+  storageBucket: "bookit-56e35.appspot.com",
+  messagingSenderId: "813441391899",
+  appId: "1:813441391899:web:d5bf9d33c6b81c983a87be"
+};
+const app = initializeApp(firebaseConfig);
+window.auth = getAuth(app);
+window.db = getFirestore(app);
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --g900: #052e16;
+  --g800: #064e3b;
+  --g700: #065f46;
+  --g600: #047857;
+  --g500: #059669;
+  --g400: #10b981;
+  --g300: #34d399;
+  --g200: #6ee7b7;
+  --g100: #a7f3d0;
+  --g50:  #d1fae5;
+  --g25:  #ecfdf5;
+  --w:    #ffffff;
+  --s900: #0f172a;
+  --s800: #1e293b;
+  --s700: #334155;
+  --s600: #475569;
+  --s500: #64748b;
+  --s400: #94a3b8;
+  --s300: #cbd5e1;
+  --s200: #e2e8f0;
+  --s100: #f1f5f9;
+  --s50:  #f8fafc;
+  --r500: #ef4444;
+  --r50:  #fef2f2;
+  --fh:   'Lora', serif;
+  --fb:   'Plus Jakarta Sans', sans-serif;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { font-size: 18px; }
+
+body {
+  font-family: var(--fb);
+  background: var(--g25);
+  color: var(--s800);
+  min-height: 100vh;
+}
+
+/* ── TOPBAR ──────────────────────────────────────── */
+.topbar {
+  background: var(--g800);
+  border-bottom: 3px solid var(--g600);
+  padding: 0 44px; height: 72px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(6,78,59,.35);
+}
+
+.tl { display: flex; align-items: center; gap: 14px; animation: fl .45s ease both; }
+
+.bi {
+  width: 44px; height: 44px; border-radius: 11px;
+  background: linear-gradient(135deg, var(--g400), var(--g700));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  border: 2px solid rgba(255,255,255,.2);
+  box-shadow: 0 2px 10px rgba(0,0,0,.3);
+}
+
+.bn  { font-family: var(--fh); font-size: 20px; font-weight: 700; color: var(--w); letter-spacing: -.01em; }
+.bst { font-size: 11.5px; font-weight: 600; color: var(--g300); letter-spacing: .07em; text-transform: uppercase; margin-top: 1px; }
+
+.topbar-divider { width: 1px; height: 36px; background: rgba(255,255,255,.15); margin: 0 4px; }
+
+.portal-pill {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color: var(--g300);
+  font-size: 13px; font-weight: 700;
+  padding: 6px 16px; border-radius: 20px;
+  letter-spacing: .04em;
+}
+
+.tr { display: flex; align-items: center; gap: 14px; animation: fr .45s ease both; }
+
+.up {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 40px; padding: 6px 16px 6px 6px;
+}
+
+.ua {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--g300), var(--g600));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: var(--g900);
+}
+
+.ue  { font-size: 14px; font-weight: 600; color: rgba(255,255,255,.9); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ur  { font-size: 11px; font-weight: 500; color: var(--g300); }
+
+.lob {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,.08);
+  border: 1.5px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.85);
+  padding: 9px 18px; border-radius: 9px;
+  font-family: var(--fb); font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all .18s;
+}
+.lob:hover { background: var(--r500); border-color: var(--r500); color: white; }
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.page-shell { display: flex; min-height: calc(100vh - 72px); }
+
+
+
+/* ── MAIN ────────────────────────────────────────── */
+.main { flex: 1; padding: 40px 48px; overflow-x: hidden; }
+
+/* ── BREADCRUMB ──────────────────────────────────── */
+.crumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--g600); margin-bottom: 22px; font-weight: 600;
+  letter-spacing: .04em; text-transform: uppercase;
+}
+.cs  { color: var(--g300); }
+.cc  { color: var(--g800); font-weight: 800; }
+
+/* ── PAGE HEADER ─────────────────────────────────── */
+.ph { margin-bottom: 36px; animation: fu .4s ease both; }
+
+.pt {
+  font-family: var(--fh);
+  font-size: 36px; font-weight: 700;
+  color: var(--g900); letter-spacing: -.02em; line-height: 1.2;
+}
+.pt em { font-style: normal; color: var(--g500); }
+
+.ps { font-size: 16px; color: var(--s500); margin-top: 7px; font-weight: 500; }
+
+/* ── SECTION DIVIDER ─────────────────────────────── */
+.dr  { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.dl  { font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--g600); white-space: nowrap; }
+.dln { flex: 1; height: 2px; background: linear-gradient(90deg, var(--g100), transparent); }
+
+/* ── STAT BANNER ─────────────────────────────────── */
+.stat-banner {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 16px; margin-bottom: 36px;
+  animation: fu .4s .04s ease both;
+}
+
+.stat-card {
+  background: var(--w);
+  border: 2px solid var(--g50);
+  border-radius: 12px; padding: 20px 22px;
+  box-shadow: 0 2px 8px rgba(6,78,59,.07);
+  border-top: 4px solid var(--g500);
+}
+
+.stat-label {
+  font-size: 12px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--g600); margin-bottom: 8px;
+}
+
+.stat-val {
+  font-family: var(--fh);
+  font-size: 32px; font-weight: 700;
+  color: var(--g800); line-height: 1;
+}
+
+.stat-sub { font-size: 13px; color: var(--s500); margin-top: 5px; font-weight: 500; }
+
+/* ── DASHBOARD CARDS ─────────────────────────────── */
+.dg {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.dc {
+  background: var(--w);
+  border: 2px solid var(--g50);
+  border-radius: 12px; padding: 26px 22px;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+  box-shadow: 0 2px 8px rgba(6,78,59,.07);
+  position: relative; overflow: hidden;
+  animation: fu .5s ease both;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+.dc:nth-child(1) { animation-delay:.04s; }
+.dc:nth-child(2) { animation-delay:.09s; }
+.dc:nth-child(3) { animation-delay:.14s; }
+.dc:nth-child(4) { animation-delay:.19s; }
+
+/* green sweep bar on bottom */
+.dc::after {
+  content: ''; position: absolute;
+  bottom: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--g500), var(--g300));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .22s ease;
+}
+.dc:hover::after { transform: scaleX(1); }
+.dc:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(6,78,59,.12);
+  border-color: var(--g100);
+}
+
+.ci {
+  width: 52px; height: 52px; border-radius: 12px;
+  background: var(--g25); border: 2px solid var(--g50);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; transition: background .2s;
+}
+.dc:hover .ci { background: var(--g50); }
+
+.ct { font-size: 18px; font-weight: 800; color: var(--g900); margin-bottom: 4px; }
+.cd { font-size: 14px; color: var(--s500); line-height: 1.6; }
+
+.ca {
+  margin-top: auto; align-self: flex-end;
+  font-size: 14px; font-weight: 700; color: var(--g600);
+  display: flex; align-items: center; gap: 4px;
+  opacity: 0; transform: translateX(-6px); transition: all .18s;
+}
+.dc:hover .ca { opacity: 1; transform: translateX(0); }
+
+/* ── FACILITY GRID ───────────────────────────────── */
+.fg {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 14px;
+}
+
+.fc {
+  background: var(--w);
+  border: 2px solid var(--g50);
+  border-radius: 12px; padding: 26px 16px;
+  text-align: center; cursor: pointer;
+  transition: all .18s;
+  box-shadow: 0 2px 8px rgba(6,78,59,.07);
+  animation: fu .4s ease both;
+}
+.fc:hover {
+  border-color: var(--g400);
+  box-shadow: 0 0 0 4px rgba(16,185,129,.12), 0 6px 18px rgba(6,78,59,.1);
+  transform: translateY(-4px);
+  background: var(--g25);
+}
+
+.fe { font-size: 30px; display: block; margin-bottom: 12px; }
+
+.fc h3 { font-size: 15px; font-weight: 700; color: var(--g800); }
+
+/* ── SECTION HEADER (bookings) ───────────────────── */
+.sh {
+  display: flex; align-items: baseline;
+  border-bottom: 3px solid var(--g100);
+  padding-bottom: 14px; margin-bottom: 22px;
+}
+
+.st {
+  font-family: var(--fh);
+  font-size: 26px; font-weight: 700; color: var(--g900);
+}
+
+/* ── TABS ────────────────────────────────────────── */
+.tabs {
+  display: flex; gap: 4px;
+  background: var(--w);
+  border: 2px solid var(--g50);
+  border-radius: 10px; padding: 4px;
+  width: fit-content; margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(6,78,59,.06);
+}
+
+.tab {
+  padding: 10px 24px; border: none; background: transparent;
+  color: var(--s500);
+  font-family: var(--fb); font-size: 15px; font-weight: 700;
+  border-radius: 8px; cursor: pointer; transition: all .16s;
+}
+.tab.active {
+  background: linear-gradient(135deg, var(--g600), var(--g800));
+  color: white;
+  box-shadow: 0 3px 10px rgba(6,78,59,.3);
+}
+.tab:hover:not(.active) { background: var(--g25); color: var(--g700); }
+
+/* ── FILTER BAR ──────────────────────────────────── */
+.fb2 {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: var(--w);
+  border: 2px solid var(--g50);
+  border-radius: 12px; padding: 14px 20px; margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(6,78,59,.06);
+}
+
+.fb2 label {
+  font-size: 13px; font-weight: 800; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--g600);
+}
+
+.fb2 input[type="date"] {
+  padding: 9px 14px;
+  background: var(--g25); border: 2px solid var(--g50);
+  border-radius: 8px;
+  color: var(--g900); font-family: var(--fb); font-size: 14px; font-weight: 600;
+  outline: none; transition: border-color .16s, box-shadow .16s;
+}
+.fb2 input[type="date"]:focus {
+  border-color: var(--g400);
+  box-shadow: 0 0 0 3px rgba(16,185,129,.14);
+}
+
+.fsep { color: var(--g300); font-size: 15px; font-weight: 700; }
+
+.fbtn {
+  padding: 9px 20px; border-radius: 8px;
+  font-family: var(--fb); font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all .16s; border: 2px solid transparent;
+}
+
+.ab {
+  background: linear-gradient(135deg, var(--g500), var(--g700));
+  color: white;
+  box-shadow: 0 2px 8px rgba(6,78,59,.25);
+}
+.ab:hover { background: linear-gradient(135deg, var(--g600), var(--g800)); }
+
+.cb { background: var(--w); color: var(--s600); border-color: var(--g50); }
+.cb:hover { background: var(--g25); color: var(--g700); border-color: var(--g100); }
+
+/* ── BOOKING CARDS ───────────────────────────────── */
+.bc { display: grid; gap: 12px; }
+
+.bk {
+  background: var(--w);
+  border: 2px solid var(--g50);
+  border-left: 5px solid var(--g400);
+  border-radius: 12px; padding: 18px 22px;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: all .16s;
+  box-shadow: 0 2px 8px rgba(6,78,59,.06);
+  animation: fu .3s ease both;
+}
+.bk:hover {
+  border-left-color: var(--g600);
+  box-shadow: 0 6px 20px rgba(6,78,59,.1);
+  background: var(--g25);
+}
+
+.bi2 { flex: 1; }
+.bi2 p { margin: 5px 0; color: var(--s600); font-size: 15px; font-weight: 500; }
+.bi2 strong { color: var(--g900); font-weight: 800; }
+
+.cnb {
+  background: var(--w); border: 2px solid var(--r500); color: var(--r500);
+  padding: 9px 18px; border-radius: 8px;
+  font-family: var(--fb); font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-left: 14px; transition: all .16s;
+}
+.cnb:hover { background: var(--r500); color: white; }
+
+/* ── BACK BUTTON ─────────────────────────────────── */
+.bb {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 32px;
+  background: var(--w); border: 2px solid var(--g100);
+  color: var(--g700);
+  padding: 11px 22px; border-radius: 9px;
+  font-family: var(--fb); font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all .16s;
+}
+.bb:hover { border-color: var(--g500); background: var(--g25); color: var(--g800); }
+
+/* ── EMPTY STATE ─────────────────────────────────── */
+.es {
+  text-align: center; padding: 60px 20px;
+  background: var(--w);
+  border: 2px dashed var(--g100);
+  border-radius: 12px;
+}
+.ei { font-size: 40px; margin-bottom: 14px; }
+.es h3 { font-family: var(--fh); font-size: 20px; font-weight: 700; color: var(--g700); margin-bottom: 7px; }
+.es p  { color: var(--s500); font-size: 15px; }
+
+/* ── TOAST ───────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: none;
+  background: var(--g800); color: white;
+  padding: 15px 24px; border-radius: 10px;
+  font-family: var(--fb); font-size: 15px; font-weight: 700;
+  box-shadow: 0 8px 28px rgba(6,78,59,.35);
+  animation: st .3s ease both;
+  border-left: 4px solid var(--g300);
+}
+.toast.error { background: var(--r500); border-left-color: #fca5a5; }
+
+/* ── UTILITY ─────────────────────────────────────── */
+.hidden { display: none !important; }
+
+@keyframes fl  { from { opacity:0; transform:translateX(-14px) } to { opacity:1; transform:none } }
+@keyframes fr  { from { opacity:0; transform:translateX(14px)  } to { opacity:1; transform:none } }
+@keyframes fu  { from { opacity:0; transform:translateY(12px)  } to { opacity:1; transform:none } }
+@keyframes st  { from { opacity:0; transform:translateY(10px)  } to { opacity:1; transform:none } }
+@keyframes spin { to { transform: rotate(360deg) } }
+
+.loading {
+  display: inline-block; width: 18px; height: 18px;
+  border: 2px solid var(--g100); border-top-color: var(--g500);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--g25); }
+::-webkit-scrollbar-thumb { background: var(--g200); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--g400); }
+
+@media (max-width: 768px) {
+  .topbar { padding: 0 18px; }
+  .ue { max-width: 120px; }
+  .sidebar { display: none; }
+  .main { padding: 28px 18px 60px; }
+  .stat-banner { grid-template-columns: 1fr; }
+  .tabs { width: 100%; }
+  .tab { flex: 1; text-align: center; padding: 10px 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tl">
+    <div class="bi">🏆</div>
+    <div>
+      <div class="bn">BookIt</div>
+      <div class="bst">Sports Management</div>
+    </div>
+    <div class="topbar-divider"></div>
+    <span class="portal-pill">⚽ Sports Admin Portal</span>
+  </div>
+  <div class="tr">
+    <div class="up">
+      <div class="ua">A</div>
+      <div>
+        <div class="ue" id="adminEmail">Loading…</div>
+        <div class="ur">Sports Admin</div>
+      </div>
+    </div>
+    <button class="lob" onclick="logoutNow()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </button>
+  </div>
+</div>
+
+<div class="page-shell">
+
+
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div id="dashboardSection">
+      <div class="ph">
+        <div class="crumb">
+          <span>BookIt</span><span class="cs">›</span>
+          <span class="cc">Sports Admin</span>
+        </div>
+        <h1 class="pt">Sports <em>Admin Dashboard</em></h1>
+        <p class="ps">Manage your sports facilities efficiently from one place.</p>
+      </div>
+
+      <div class="stat-banner">
+        <div class="stat-card">
+          <div class="stat-label">Total Facilities</div>
+          <div class="stat-val">8</div>
+          <div class="stat-sub">Active sports venues</div>
+        </div>
+        <div class="stat-card" style="border-top-color:var(--g300);">
+          <div class="stat-label">Portal</div>
+          <div class="stat-val" style="font-size:22px;padding-top:6px;">Sports</div>
+          <div class="stat-sub">Faculty management view</div>
+        </div>
+      </div>
+
+      <div class="dr">
+        <span class="dl">Quick Access</span>
+        <div class="dln"></div>
+      </div>
+
+      <div class="dg">
+        <div class="dc" onclick="showFacilities()">
+          <div class="ci">📅</div>
+          <div>
+            <div class="ct">Bookings</div>
+            <div class="cd">View and manage sports facility bookings</div>
+          </div>
+          <div class="ca">View all →</div>
+        </div>
+        <div class="dc" onclick="location.href='sfeedback.html'">
+          <div class="ci">💬</div>
+          <div>
+            <div class="ct">Feedback</div>
+            <div class="cd">View user feedback and suggestions</div>
+          </div>
+          <div class="ca">View all →</div>
+        </div>
+        <div class="dc" onclick="location.href='sreport.html'">
+          <div class="ci">📊</div>
+          <div>
+            <div class="ct">Reports &amp; Analytics</div>
+            <div class="cd">View usage statistics and reports</div>
+          </div>
+          <div class="ca">View all →</div>
+        </div>
+        <div class="dc" onclick="location.href='announcements-admin.html'">
+          <div class="ci">📢</div>
+          <div>
+            <div class="ct">Announcements</div>
+            <div class="cd">Create and manage user announcements</div>
+          </div>
+          <div class="ca">View all →</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FACILITY SELECTION -->
+    <div id="facilitySection" class="hidden">
+      <div class="ph">
+        <div class="crumb">
+          <span>Sports Admin</span><span class="cs">›</span>
+          <span>Bookings</span><span class="cs">›</span>
+          <span class="cc">Facilities</span>
+        </div>
+        <h1 class="pt">Select <em>Sports Facility</em></h1>
+        <p class="ps">Choose a facility to view its bookings.</p>
+      </div>
+
+      <div class="dr"><span class="dl">Facilities</span><div class="dln"></div></div>
+
+      <div class="fg">
+        <div class="fc" onclick="loadBookings('cricket-nets')"><span class="fe">🏏</span><h3>Cricket Nets</h3></div>
+        <div class="fc" onclick="loadBookings('Table Tennis')"><span class="fe">🏓</span><h3>Table Tennis</h3></div>
+        <div class="fc" onclick="loadBookings('Outdoor Badminton Court')"><span class="fe">🏸</span><h3>Outdoor Badminton</h3></div>
+        <div class="fc" onclick="loadBookings('Volleyball')"><span class="fe">🏐</span><h3>Volleyball</h3></div>
+        <div class="fc" onclick="loadBookings('main-ground')"><span class="fe">⚽</span><h3>Main Ground</h3></div>
+        <div class="fc" onclick="loadBookings('Basketball')"><span class="fe">🏀</span><h3>Basketball</h3></div>
+        <div class="fc" onclick="loadBookings('Indoor Badminton Court')"><span class="fe">🏸</span><h3>Indoor Badminton</h3></div>
+        <div class="fc" onclick="loadBookings('Carroms')"><span class="fe">🎯</span><h3>Carroms</h3></div>
+      </div>
+
+      <button class="bb" onclick="backToDashboard()">← Back to Dashboard</button>
+    </div>
+
+    <!-- BOOKINGS VIEW -->
+    <div id="bookingSection" class="hidden">
+      <div class="sh">
+        <div>
+          <div class="crumb" style="margin-bottom:7px;">
+            <span>Bookings</span><span class="cs">›</span>
+            <span id="facilityTitle" class="cc"></span>
+          </div>
+          <div class="st" id="facilityTitleDisplay"></div>
+        </div>
+      </div>
+
+      <div class="fb2">
+        <label>Filter by Date</label>
+        <input type="date" id="fromDate">
+        <span class="fsep">→</span>
+        <input type="date" id="toDate">
+        <button class="fbtn ab" onclick="applyDateFilter()">Apply</button>
+        <button class="fbtn cb" onclick="clearFilter()">Clear</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('ongoing')">⏳ Ongoing</button>
+        <button class="tab" onclick="switchTab('upcoming')">📅 Upcoming</button>
+        <button class="tab" onclick="switchTab('completed')">✅ Completed</button>
+      </div>
+
+      <div id="ongoingContainer"   class="bc"></div>
+      <div id="upcomingContainer"  class="bc hidden"></div>
+      <div id="completedContainer" class="bc hidden"></div>
+
+      <button class="bb" onclick="backToFacilities()">← Back to Facilities</button>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, query, where, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+let allBookings=[],selectedFacility="",currentTab="ongoing";
+onAuthStateChanged(auth,async(user)=>{
+  if(!user){location.href="index.html";return;}
+  document.getElementById("adminEmail").textContent=user.email;
+  const av=document.querySelector('.ua');if(av)av.textContent=user.email[0].toUpperCase();
+});
+window.logoutNow=function(){signOut(auth).then(()=>location.href="index.html");};
+window.showFacilities=function(){
+  document.getElementById("dashboardSection").classList.add("hidden");
+  document.getElementById("facilitySection").classList.remove("hidden");
+  document.getElementById("bookingSection").classList.add("hidden");
+};
+window.backToDashboard=function(){
+  document.getElementById("dashboardSection").classList.remove("hidden");
+  document.getElementById("facilitySection").classList.add("hidden");
+  document.getElementById("bookingSection").classList.add("hidden");
+};
+window.backToFacilities=function(){
+  document.getElementById("dashboardSection").classList.add("hidden");
+  document.getElementById("facilitySection").classList.remove("hidden");
+  document.getElementById("bookingSection").classList.add("hidden");
+};
+window.loadBookings=async function(facilityName){
+  selectedFacility=facilityName;
+  const label=facilityName.replace(/-/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+  document.getElementById("facilityTitle").textContent=label;
+  document.getElementById("facilityTitleDisplay").textContent=label+" Bookings";
+  const q=query(collection(db,"bookings"),where("facilityType","==","sport"),where("facility","==",facilityName));
+  const snap=await getDocs(q);allBookings=[];
+  snap.forEach(d=>{let data=d.data();data.id=d.id;if(data.status!=="cancelled")allBookings.push(data);});
+  document.getElementById("facilitySection").classList.add("hidden");
+  document.getElementById("bookingSection").classList.remove("hidden");
+  displayBookings(allBookings);switchTab('ongoing');
+};
+function displayBookings(list){
+  const now=new Date();let ongoing=[],upcoming=[],completed=[];
+  list.forEach(b=>{
+    const[start,end]=b.time.split("-");
+    const s=new Date(`${b.date}T${start}`),e=new Date(`${b.date}T${end}`);
+    if(now>=s&&now<=e)ongoing.push(b);else if(s>now)upcoming.push(b);else completed.push(b);
+  });
+  fillList("ongoingContainer",ongoing,false);
+  fillList("upcomingContainer",upcoming,true);
+  fillList("completedContainer",completed,false);
+}
+function fillList(containerId,arr,allowCancel){
+  const c=document.getElementById(containerId);c.innerHTML="";
+  if(arr.length===0){
+    c.innerHTML=`<div class="es"><div class="ei">📭</div><h3>No bookings found</h3><p>There are no ${containerId.replace('Container','')} bookings at the moment.</p></div>`;
+    return;
+  }
+  arr.forEach(b=>{
+    const card=document.createElement("div");card.className="bk";
+    const info=document.createElement("div");info.className="bi2";
+    info.innerHTML=`<p><strong>Email:</strong> ${b.email}</p><p><strong>Date:</strong> ${b.date}</p><p><strong>Time:</strong> ${b.time}</p>`;
+    card.appendChild(info);
+    if(allowCancel){const btn=document.createElement("button");btn.className="cnb";btn.textContent="Cancel Booking";btn.onclick=()=>cancelBooking(b.id);card.appendChild(btn);}
+    c.appendChild(card);
+  });
+}
+window.switchTab=function(tabName){
+  currentTab=tabName;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  ['ongoing','upcoming','completed'].forEach(n=>document.getElementById(n+'Container').classList.add('hidden'));
+  document.getElementById(tabName+'Container').classList.remove('hidden');
+};
+window.cancelBooking=async function(bookingId){
+  if(!confirm("Are you sure you want to cancel this booking?"))return;
+  try{
+    await updateDoc(doc(db,"bookings",bookingId),{status:"cancelled"});
+    showToast("Booking Cancelled");loadBookings(selectedFacility);
+  }catch(error){alert("Error cancelling booking: "+error.message);}
+};
+window.applyDateFilter=function(){
+  const from=document.getElementById("fromDate").value;
+  const to=document.getElementById("toDate").value;
+  if(!from||!to){alert("Please select both start and end dates");return;}
+  displayBookings(allBookings.filter(b=>b.date>=from&&b.date<=to));
+};
+window.clearFilter=function(){
+  document.getElementById("fromDate").value="";document.getElementById("toDate").value="";
+  displayBookings(allBookings);
+};
+function showToast(message){
+  const t=document.getElementById("toast");t.textContent=message;t.style.display="block";
+  setTimeout(()=>{t.style.display="none";},3000);
+}
+</script>
+</body>
+</html>

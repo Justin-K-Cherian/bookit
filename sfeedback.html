@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sports Feedback – BookIt</title>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { 
+    getAuth, onAuthStateChanged, signOut 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+    getFirestore, collection, query, where, getDocs 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDYD768C9UY7PHq8BrQLN8paau3LmXAnFs",
+  authDomain: "bookit-56e35.firebaseapp.com",
+  projectId: "bookit-56e35",
+  storageBucket: "bookit-56e35.appspot.com",
+  messagingSenderId: "813441391899",
+  appId: "1:813441391899:web:d5bf9d33c6b81c983a87be"
+};
+
+const app = initializeApp(firebaseConfig);
+window.auth = getAuth(app);
+window.db = getFirestore(app);
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --g900:#052e16;--g800:#064e3b;--g700:#065f46;--g600:#047857;
+  --g500:#059669;--g400:#10b981;--g300:#34d399;--g200:#6ee7b7;
+  --g100:#a7f3d0;--g50:#d1fae5;--g25:#ecfdf5;
+  --w:#fff;
+  --s900:#0f172a;--s800:#1e293b;--s700:#334155;--s600:#475569;
+  --s500:#64748b;--s400:#94a3b8;--s300:#cbd5e1;--s200:#e2e8f0;
+  --s100:#f1f5f9;--s50:#f8fafc;
+  --r500:#ef4444;--r50:#fef2f2;
+  --amber:#d97706;--amber-l:#fde68a;--amber-ll:#fffbeb;
+  --fh:'Lora',serif;--fb:'Plus Jakarta Sans',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:18px;}
+body{font-family:var(--fb);background:var(--g25);color:var(--s800);min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:var(--g800);border-bottom:3px solid var(--g600);padding:0 44px;height:72px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(6,78,59,.35);}
+.tl{display:flex;align-items:center;gap:14px;}
+.bi{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,var(--g400),var(--g700));
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  border:2px solid rgba(255,255,255,.2);box-shadow:0 2px 10px rgba(0,0,0,.3);}
+.bn{font-family:var(--fh);font-size:20px;font-weight:700;color:var(--w);}
+.bst{font-size:11.5px;font-weight:600;color:var(--g300);letter-spacing:.07em;text-transform:uppercase;}
+.tdiv{width:1px;height:36px;background:rgba(255,255,255,.15);margin:0 4px;}
+.portal-pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  color:var(--g300);font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;letter-spacing:.04em;}
+.tr{display:flex;align-items:center;gap:14px;}
+.up{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.18);border-radius:40px;padding:6px 16px 6px 6px;}
+.ua{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--g300),var(--g600));
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--g900);}
+.ue{font-size:14px;font-weight:600;color:rgba(255,255,255,.9);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ur{font-size:11px;font-weight:500;color:var(--g300);}
+.logout-btn{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.08);
+  border:1.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);
+  padding:9px 18px;border-radius:9px;font-family:var(--fb);font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .18s;}
+.logout-btn:hover{background:var(--r500);border-color:var(--r500);color:white;}
+
+/* MAIN */
+.wrap{max-width:1140px;margin:0 auto;padding:44px 28px 80px;}
+
+/* BREADCRUMB */
+.crumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--g600);
+  margin-bottom:22px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+.cs{color:var(--g300);}
+.cc{color:var(--g800);font-weight:800;}
+
+/* PAGE HEADER */
+.ph{margin-bottom:36px;animation:fu .4s ease both;}
+.pt{font-family:var(--fh);font-size:36px;font-weight:700;color:var(--g900);letter-spacing:-.02em;line-height:1.2;}
+.pt em{font-style:normal;color:var(--g500);}
+.ps{font-size:16px;color:var(--s500);margin-top:7px;font-weight:500;}
+
+/* SECTION DIVIDER */
+.dr{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+.dl{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--g600);white-space:nowrap;}
+.dln{flex:1;height:2px;background:linear-gradient(90deg,var(--g100),transparent);}
+
+/* SECTION HEADER (feedback view) */
+.sh{display:flex;align-items:baseline;border-bottom:3px solid var(--g100);padding-bottom:14px;margin-bottom:22px;}
+.st{font-family:var(--fh);font-size:26px;font-weight:700;color:var(--g900);}
+
+/* FACILITY GRID */
+.facility-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;}
+.facility-card{background:var(--w);border:2px solid var(--g50);border-radius:12px;padding:26px 16px;
+  text-align:center;cursor:pointer;transition:all .18s;
+  box-shadow:0 2px 8px rgba(6,78,59,.07);animation:fu .4s ease both;}
+.facility-card:hover{border-color:var(--g400);
+  box-shadow:0 0 0 4px rgba(16,185,129,.12),0 6px 18px rgba(6,78,59,.1);
+  transform:translateY(-4px);background:var(--g25);}
+.fac-emoji{font-size:30px;margin-bottom:10px;}
+.facility-card h3{font-size:15px;font-weight:700;color:var(--g800);}
+
+/* FILTER BAR */
+.filter-box{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:var(--w);border:2px solid var(--g50);border-radius:12px;
+  padding:14px 20px;margin-bottom:18px;box-shadow:0 2px 8px rgba(6,78,59,.06);}
+.filter-box label{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--g600);}
+.filter-box input[type="date"]{padding:9px 14px;background:var(--g25);border:2px solid var(--g50);
+  border-radius:8px;color:var(--g900);font-family:var(--fb);font-size:14px;font-weight:600;
+  outline:none;transition:border-color .16s,box-shadow .16s;}
+.filter-box input[type="date"]:focus{border-color:var(--g400);box-shadow:0 0 0 3px rgba(16,185,129,.14);}
+.fsep{color:var(--g300);font-size:15px;font-weight:700;}
+.filter-btn{padding:9px 20px;border-radius:8px;font-family:var(--fb);font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .16s;border:2px solid transparent;}
+.apply-btn{background:linear-gradient(135deg,var(--g500),var(--g700));color:white;
+  box-shadow:0 2px 8px rgba(6,78,59,.25);}
+.apply-btn:hover{background:linear-gradient(135deg,var(--g600),var(--g800));}
+.clear-btn{background:var(--w);color:var(--s600);border-color:var(--g50);}
+.clear-btn:hover{background:var(--g25);color:var(--g700);border-color:var(--g100);}
+
+/* FEEDBACK CARDS */
+.feedback-container{display:grid;gap:14px;}
+.feedback-card{background:var(--w);border:2px solid var(--g50);border-left:5px solid var(--g400);
+  border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(6,78,59,.07);
+  transition:all .18s;animation:fu .4s ease both;}
+.feedback-card:hover{box-shadow:0 6px 20px rgba(6,78,59,.1);border-color:var(--g100);border-left-color:var(--g600);}
+.feedback-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+.user-info{flex:1;}
+.user-email{font-weight:800;color:var(--g800);font-size:16px;}
+.feedback-date{font-size:13px;color:var(--s500);margin-top:5px;font-weight:500;}
+.overall-rating{background:linear-gradient(135deg,var(--amber),#b45309);color:white;
+  padding:8px 16px;border-radius:9px;font-weight:800;font-size:16px;
+  box-shadow:0 3px 10px rgba(217,119,6,.3);white-space:nowrap;}
+.comment-section{margin:14px 0;padding:16px 18px;background:var(--amber-ll);
+  border:2px solid var(--amber-l);border-radius:10px;}
+.comment-label{color:var(--amber);font-weight:800;font-size:13px;margin-bottom:8px;
+  text-transform:uppercase;letter-spacing:.06em;}
+.comment-text{color:var(--s700);font-size:15px;line-height:1.7;font-weight:500;}
+.ratings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px;}
+.rating-item{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;background:var(--g25);border:2px solid var(--g50);border-radius:9px;}
+.rating-label{color:var(--s700);font-size:14px;font-weight:600;}
+.rating-value{color:var(--g700);font-weight:800;font-size:15px;}
+
+/* BACK BUTTON */
+.back-btn{display:inline-flex;align-items:center;gap:8px;margin-top:32px;
+  background:var(--w);border:2px solid var(--g100);color:var(--g700);
+  padding:11px 22px;border-radius:9px;font-family:var(--fb);font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .16s;}
+.back-btn:hover{border-color:var(--g500);background:var(--g25);color:var(--g800);}
+
+/* EMPTY / LOADING */
+.empty-state{text-align:center;padding:60px 20px;background:var(--w);
+  border:2px dashed var(--g100);border-radius:12px;}
+.empty-state h3{font-family:var(--fh);font-size:20px;font-weight:700;color:var(--g700);margin-bottom:7px;}
+.empty-state p{color:var(--s500);font-size:15px;}
+.loading{text-align:center;padding:48px;color:var(--g700);font-size:16px;font-weight:600;}
+
+.hidden{display:none!important;}
+@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--g25);}
+::-webkit-scrollbar-thumb{background:var(--g200);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--g400);}
+@media(max-width:768px){.topbar{padding:0 18px;}.wrap{padding:28px 16px 60px;}.facility-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tl">
+    <div class="bi">🏆</div>
+    <div><div class="bn">BookIt</div><div class="bst">Sports Management</div></div>
+    <div class="tdiv"></div>
+    <span class="portal-pill">💬 Sports Feedback</span>
+  </div>
+  <div class="tr">
+    <div class="up">
+      <div class="ua" id="adminAvatar">A</div>
+      <div><div class="ue" id="adminEmail">Loading...</div><div class="ur">Sports Admin</div></div>
+    </div>
+    <button class="logout-btn" onclick="logoutNow()">↩ Logout</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- FACILITY SELECTION -->
+  <div id="facilitySection">
+    <div class="ph">
+      <div class="crumb"><span>BookIt</span><span class="cs">›</span><span>Sports Admin</span><span class="cs">›</span><span class="cc">Feedback</span></div>
+      <h1 class="pt">Sports <em>Feedback</em></h1>
+      <p class="ps">Select a facility to view submitted feedback from users.</p>
+    </div>
+    <div class="dr"><span class="dl">Select Facility</span><div class="dln"></div></div>
+    <div class="facility-grid">
+      <div class="facility-card" onclick="loadFeedback('cricket-nets')"><div class="fac-emoji">🏏</div><h3>Cricket Nets</h3></div>
+      <div class="facility-card" onclick="loadFeedback('table-tennis')"><div class="fac-emoji">🏓</div><h3>Table Tennis</h3></div>
+      <div class="facility-card" onclick="loadFeedback('badminton-outdoor')"><div class="fac-emoji">🏸</div><h3>Outdoor Badminton Court</h3></div>
+      <div class="facility-card" onclick="loadFeedback('volleyball-court')"><div class="fac-emoji">🏐</div><h3>Volleyball Court</h3></div>
+      <div class="facility-card" onclick="loadFeedback('main-ground')"><div class="fac-emoji">⚽</div><h3>Main Ground</h3></div>
+      <div class="facility-card" onclick="loadFeedback('basketball-court')"><div class="fac-emoji">🏀</div><h3>Basketball Court</h3></div>
+      <div class="facility-card" onclick="loadFeedback('badminton-indoor')"><div class="fac-emoji">🏸</div><h3>Indoor Badminton Court</h3></div>
+      <div class="facility-card" onclick="loadFeedback('carroms')"><div class="fac-emoji">🎯</div><h3>Carroms</h3></div>
+    </div>
+    <button class="back-btn" onclick="location.href='sportsadmin.html'">← Back to Dashboard</button>
+  </div>
+
+  <!-- FEEDBACK VIEW -->
+  <div id="feedbackSection" class="hidden">
+    <div class="sh">
+      <div>
+        <div class="crumb" style="margin-bottom:7px;"><span>Feedback</span><span class="cs">›</span><span id="facilityTitleCrumb" class="cc"></span></div>
+        <div class="st" id="facilityTitle"></div>
+      </div>
+    </div>
+    <div class="filter-box">
+      <label>📅 Filter by Date:</label>
+      <input type="date" id="fromDate">
+      <span class="fsep">→</span>
+      <input type="date" id="toDate">
+      <button class="filter-btn apply-btn" onclick="applyDateFilter()">Apply Filter</button>
+      <button class="filter-btn clear-btn" onclick="clearFilter()">Clear</button>
+    </div>
+    <div id="feedbackContainer" class="feedback-container"></div>
+    <button class="back-btn" onclick="backToFacilities()">← Back to Facilities</button>
+  </div>
+
+</div>
+
+<script type="module">
+import { onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+    collection, query, where, getDocs 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let allFeedback = [];
+let selectedFacility = "";
+
+// AUTH CHECK
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        location.href = "index.html";
+        return;
+    }
+    document.getElementById("adminEmail").textContent = user.email;
+    const av = document.getElementById("adminAvatar");
+    if (av) av.textContent = user.email[0].toUpperCase();
+});
+
+// LOGOUT
+window.logoutNow = function() {
+    signOut(auth).then(() => location.href = "index.html");
+};
+
+// NAVIGATION
+window.backToFacilities = function() {
+    document.getElementById("facilitySection").classList.remove("hidden");
+    document.getElementById("feedbackSection").classList.add("hidden");
+};
+
+// Helper: mask email like "r...r@example.com"
+function maskEmail(email = "") {
+    if (!email || typeof email !== "string") return "Anonymous";
+    const parts = email.split("@");
+    if (parts.length !== 2) return "Anonymous";
+    const name = parts[0];
+    const domain = parts[1];
+    if (name.length < 2) return "Anonymous";
+    const maskedName = name[0] + "..."+ name[name.length - 1];
+    return maskedName + "@" + domain;
+}
+
+// LOAD FEEDBACK - SIMPLE QUERY WITHOUT ORDERBY
+window.loadFeedback = async function(facilityName) {
+    selectedFacility = facilityName;
+    const label = facilityName.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    document.getElementById("facilityTitle").textContent = "💬 " + label + " Feedback";
+    document.getElementById("facilityTitleCrumb").textContent = label;
+
+    const container = document.getElementById("feedbackContainer");
+    container.innerHTML = '<div class="loading">⏳ Loading feedback…</div>';
+
+    try {
+        const q = query(
+            collection(db, "feedback"),
+            where("category", "==", "sports"),
+            where("facility", "==", facilityName)
+        );
+
+        const snap = await getDocs(q);
+        allFeedback = [];
+
+        snap.forEach(d => {
+            let data = d.data();
+            data.id = d.id;
+            allFeedback.push(data);
+        });
+
+        // Sort manually by date (newest first)
+        allFeedback.sort((a, b) => {
+            if (!a.createdAt || !b.createdAt) return 0;
+            try {
+                return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
+            } catch (e) {
+                return 0;
+            }
+        });
+
+        document.getElementById("facilitySection").classList.add("hidden");
+        document.getElementById("feedbackSection").classList.remove("hidden");
+
+        displayFeedback(allFeedback);
+    } catch (error) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>Error Loading Feedback</h3>
+                <p>${error.message}</p>
+                <p style="margin-top: 10px; font-size: 14px;">Check browser console (F12) for details</p>
+            </div>
+        `;
+    }
+};
+
+// DISPLAY FEEDBACK
+function displayFeedback(feedbackList) {
+    const container = document.getElementById("feedbackContainer");
+    container.innerHTML = "";
+
+    if (feedbackList.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No Feedback Yet</h3>
+                <p>There are no feedback submissions for this facility.</p>
+            </div>
+        `;
+        return;
+    }
+
+    feedbackList.forEach((f) => {
+        const card = document.createElement("div");
+        card.className = "feedback-card";
+
+        // Format date
+        let dateStr = "N/A";
+        if (f.createdAt) {
+            try {
+                const date = f.createdAt.toDate();
+                dateStr = date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {}
+        }
+
+        // Get overall rating
+        let overallRating = "N/A";
+        if (f.ratings && f.ratings["Overall Experience"]) {
+            overallRating = f.ratings["Overall Experience"];
+        }
+
+        // Build ratings HTML
+        let ratingsHTML = "";
+        if (f.ratings && typeof f.ratings === 'object') {
+            ratingsHTML = "<div class='ratings-grid'>";
+            const ratingOrder = [
+                "Cleanliness",
+                "Ease of Booking",
+                "Equipment Availability",
+                "Ground / Court Quality",
+                "Lighting Quality",
+                "Safety Measures",
+                "Staff Support",
+                "Overall Experience"
+            ];
+            ratingOrder.forEach(key => {
+                if (f.ratings[key] !== undefined) {
+                    ratingsHTML += `
+                        <div class="rating-item">
+                            <span class="rating-label">${key}</span>
+                            <span class="rating-value">⭐ ${f.ratings[key]}/5</span>
+                        </div>
+                    `;
+                }
+            });
+            ratingsHTML += "</div>";
+        }
+
+        // Masked email for privacy
+        const rawEmail = f.userEmail || f.userId || "";
+        const maskedEmail = maskEmail(rawEmail);
+
+        card.innerHTML = `
+            <div class="feedback-header">
+                <div class="user-info">
+                    <div class="user-email">👤 ${maskedEmail}</div>
+                    <div class="feedback-date">📅 ${dateStr}</div>
+                </div>
+                <div class="overall-rating">⭐ ${overallRating}/5</div>
+            </div>
+
+            ${f.comment ? `
+                <div class="comment-section">
+                    <div class="comment-label">💬 User Comment</div>
+                    <div class="comment-text">${f.comment}</div>
+                </div>
+            ` : ''}
+
+            ${ratingsHTML}
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+// DATE FILTER
+window.applyDateFilter = function() {
+    const from = document.getElementById("fromDate").value;
+    const to = document.getElementById("toDate").value;
+
+    if (!from || !to) {
+        alert("Please select both start and end dates");
+        return;
+    }
+
+    const fromDate = new Date(from);
+    fromDate.setHours(0, 0, 0, 0);
+    
+    const toDate = new Date(to);
+    toDate.setHours(23, 59, 59, 999);
+
+    const filtered = allFeedback.filter(f => {
+        if (!f.createdAt) return false;
+        try {
+            const feedbackDate = f.createdAt.toDate();
+            return feedbackDate >= fromDate && feedbackDate <= toDate;
+        } catch (e) {
+            return false;
+        }
+    });
+
+    displayFeedback(filtered);
+};
+
+window.clearFilter = function() {
+    document.getElementById("fromDate").value = "";
+    document.getElementById("toDate").value = "";
+    displayFeedback(allFeedback);
+};
+</script>
+
+</body>
+</html>

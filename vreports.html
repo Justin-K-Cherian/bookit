@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Venue Reports & Analytics – BookIt</title>
+
+<!-- Firebase Init -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyDYD768C9UY7PHq8BrQLN8paau3LmXAnFs",
+  authDomain: "bookit-56e35.firebaseapp.com",
+  projectId: "bookit-56e35",
+  storageBucket: "bookit-56e35.appspot.com",
+  messagingSenderId: "813441391899",
+  appId: "1:813441391899:web:d5bf9d33c6b81c983a87be"
+};
+const app = initializeApp(firebaseConfig);
+window.auth = getAuth(app);
+window.db = getFirestore(app);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --g900:#052e16; --g800:#064e3b; --g700:#065f46; --g600:#047857;
+  --g500:#059669; --g400:#10b981; --g300:#34d399; --g200:#6ee7b7;
+  --g100:#a7f3d0; --g50:#d1fae5;  --g25:#ecfdf5;  --g10:#f0fdf4;
+  --w:#ffffff;
+  --s900:#0f172a; --s800:#1e293b; --s700:#334155; --s600:#475569;
+  --s500:#64748b; --s400:#94a3b8; --s300:#cbd5e1; --s200:#e2e8f0;
+  --s100:#f1f5f9; --s50:#f8fafc;
+  --r500:#ef4444; --r100:#fee2e2; --r50:#fef2f2;
+  --amber:#d97706; --amber-l:#fef3c7;
+  --fd:'DM Serif Display',serif;
+  --fb:'DM Sans',sans-serif;
+  --shadow-sm:0 1px 3px rgba(6,78,59,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(6,78,59,.10),0 2px 6px rgba(0,0,0,.04);
+  --shadow-lg:0 12px 36px rgba(6,78,59,.14),0 4px 12px rgba(0,0,0,.06);
+  --shadow-xl:0 24px 56px rgba(6,78,59,.18),0 8px 20px rgba(0,0,0,.08);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--g10);color:var(--s800);min-height:100vh;line-height:1.6}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--w);border-bottom:1px solid var(--g50);padding:0 40px;height:68px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 var(--g50),var(--shadow-sm)}
+.tl{display:flex;align-items:center;gap:16px;animation:slideRight .5s ease both}
+.bico{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--g400),var(--g700));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 8px rgba(5,150,105,.35)}
+.brand-group{display:flex;flex-direction:column}
+.bn{font-family:var(--fd);font-size:19px;color:var(--g900);line-height:1.1}
+.bsub{font-size:10.5px;font-weight:600;color:var(--g500);letter-spacing:.1em;text-transform:uppercase}
+.topbar-divider{width:1px;height:28px;background:var(--g50)}
+.portal-pill{background:var(--g25);border:1.5px solid var(--g100);color:var(--g700);font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;letter-spacing:.04em}
+.tr{display:flex;align-items:center;gap:12px;animation:slideLeft .5s ease both}
+.up{display:flex;align-items:center;gap:10px;background:var(--g10);border:1.5px solid var(--g50);border-radius:32px;padding:5px 14px 5px 5px;transition:border-color .18s,background .18s;cursor:default}
+.up:hover{border-color:var(--g200);background:var(--g25)}
+.ua{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--g400),var(--g700));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white;flex-shrink:0}
+.ue{font-size:13.5px;font-weight:600;color:var(--s700);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ur{font-size:11px;font-weight:500;color:var(--g600)}
+.lob{display:flex;align-items:center;gap:7px;background:var(--w);border:1.5px solid var(--s200);color:var(--s600);padding:8px 16px;border-radius:8px;font-family:var(--fb);font-size:13.5px;font-weight:600;cursor:pointer;transition:all .18s}
+.lob:hover{background:var(--r50);border-color:var(--r100);color:var(--r500)}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1320px;margin:0 auto;padding:40px 32px 80px}
+
+/* ── PAGE HEADER BANNER ── */
+.page-header{background:var(--g900);border-radius:16px;padding:32px 36px;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:var(--shadow-xl);animation:fadeUp .4s ease both}
+.page-header::before{content:'';position:absolute;right:-50px;top:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(52,211,153,.14),transparent 70%)}
+.page-header::after{content:'';position:absolute;right:80px;bottom:-60px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.08),transparent 70%)}
+.page-header-inner{position:relative;z-index:1;display:flex;align-items:center;gap:18px}
+.ph-icon{font-size:44px;filter:drop-shadow(0 4px 12px rgba(52,211,153,.3));animation:float 4s ease-in-out infinite}
+.page-header h1{font-family:var(--fd);font-size:28px;color:white;margin-bottom:4px;line-height:1.2}
+.page-header p{font-size:14px;color:rgba(255,255,255,.65);font-weight:400}
+.page-header-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g300);margin-bottom:10px;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.2);padding:3px 10px;border-radius:20px}
+
+/* ── TOGGLE ── */
+.toggle-outer{display:flex;justify-content:flex-start;margin-bottom:24px;background:var(--w);border:1.5px solid var(--g50);border-radius:12px;padding:6px;width:fit-content;box-shadow:var(--shadow-sm);animation:fadeUp .4s .04s ease both}
+.tog{padding:10px 26px;border:none;background:transparent;color:var(--s500);border-radius:8px;font-family:var(--fb);font-weight:700;font-size:14px;cursor:pointer;transition:all .2s}
+.tog:hover:not(.on){background:var(--g25);color:var(--g600)}
+.tog.on{background:linear-gradient(135deg,var(--g400),var(--g700));color:white;box-shadow:0 3px 10px rgba(6,78,59,.25)}
+
+/* ── FILTER BAR ── */
+.fbar{background:var(--w);border:1.5px solid var(--g50);border-radius:12px;padding:20px 22px;margin-bottom:24px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;box-shadow:var(--shadow-sm);animation:fadeUp .4s .06s ease both}
+.fg{display:flex;flex-direction:column;gap:6px}
+.fg label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--g600)}
+.fg input[type="date"]{padding:9px 14px;border:1.5px solid var(--g50);background:var(--g25);border-radius:8px;color:var(--s800);font-family:var(--fb);font-size:14px;font-weight:500;min-width:160px;outline:none;transition:border-color .18s}
+.fg input[type="date"]:focus{border-color:var(--g400);background:var(--w);box-shadow:0 0 0 3px rgba(16,185,129,.10)}
+.factions{display:flex;gap:10px;flex-wrap:wrap;margin-left:auto}
+.btn{padding:9px 18px;border:none;border-radius:8px;font-family:var(--fb);font-weight:700;font-size:14px;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.btn-gen{background:linear-gradient(135deg,var(--g400),var(--g700));color:white;box-shadow:0 3px 10px rgba(6,78,59,.2)}
+.btn-clr{background:var(--w);border:1.5px solid var(--s200);color:var(--s600)}
+.btn-clr:hover{background:var(--s100)}
+.btn-csv{background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;box-shadow:0 3px 10px rgba(59,130,246,.25)}
+.btn-pdf{background:linear-gradient(135deg,#ec4899,#db2777);color:white;box-shadow:0 3px 10px rgba(236,72,153,.25)}
+
+/* ── LOADER ── */
+.loader{text-align:center;padding:80px 20px}
+.spinner{width:48px;height:48px;margin:0 auto 16px;border:4px solid var(--g100);border-radius:50%;border-top-color:var(--g400);animation:spin .75s linear infinite}
+.loader p{color:var(--s500);font-size:15px;font-weight:500}
+
+/* ── STATS GRID ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:28px}
+.sc{background:var(--w);border:1.5px solid var(--g50);border-radius:14px;padding:24px 18px;text-align:center;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--g400),var(--g300))}
+.sc:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.sc-icon{font-size:30px;margin-bottom:8px}
+.sc-val{font-family:var(--fd);font-size:30px;color:var(--g700);line-height:1.1;margin-bottom:4px}
+.sc-val span{font-size:16px;color:var(--s400)}
+.sc-label{font-size:11px;font-weight:700;color:var(--s500);text-transform:uppercase;letter-spacing:.08em}
+
+/* ── SECTION DIVIDER ── */
+.sec-div{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--g600);border-bottom:2px solid var(--g50);padding-bottom:8px;margin-bottom:18px;margin-top:8px}
+
+/* ── CHART GRIDS ── */
+.cg2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:20px}
+.cg3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:20px}
+.cc{background:var(--w);border:1.5px solid var(--g50);border-radius:14px;padding:22px;box-shadow:var(--shadow-sm);transition:transform .2s,box-shadow .2s}
+.cc:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.cc.span2{grid-column:span 2}
+.cc.full{grid-column:1/-1}
+.cc-head{margin-bottom:14px}
+.cc-head h3{font-size:16px;font-weight:700;color:var(--g800)}
+.cc-desc{font-size:12.5px;color:var(--s500);margin-top:4px;line-height:1.5;max-width:480px}
+.cc-box{position:relative;height:240px;background:var(--g10);border-radius:10px;padding:12px}
+.cc-box.md{height:260px}
+.cc-box.lg{height:290px}
+
+/* ── TABLE ── */
+.tw{background:var(--w);border:1.5px solid var(--g50);border-radius:14px;padding:22px;margin-bottom:24px;overflow-x:auto;box-shadow:var(--shadow-sm)}
+.tw-head h3{font-size:17px;font-weight:700;color:var(--g800)}
+.tw-head p{font-size:13px;color:var(--s500);margin-top:4px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+th{padding:12px 14px;text-align:left;color:var(--g600);font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid var(--g50);background:var(--g10);white-space:nowrap}
+td{padding:12px 14px;color:var(--s700);font-size:14px;border-bottom:1px solid var(--s100);font-weight:500;white-space:nowrap}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:var(--g25)}
+tbody tr:last-child td{border-bottom:none}
+
+/* ── BACK BTN ── */
+.back-btn{display:inline-flex;align-items:center;gap:8px;background:var(--w);border:1.5px solid var(--g100);color:var(--g700);padding:9px 18px;border-radius:9px;font-family:var(--fb);font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;box-shadow:var(--shadow-sm)}
+.back-btn:hover{border-color:var(--g400);background:var(--g25);transform:translateX(-3px)}
+
+.hidden{display:none!important}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@keyframes slideLeft{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--g10)}
+::-webkit-scrollbar-thumb{background:var(--g100);border-radius:4px}
+
+@media(max-width:900px){.cg2,.cg3{grid-template-columns:1fr}.cc.span2{grid-column:1}}
+@media(max-width:580px){
+  .topbar{padding:0 18px}.ue{max-width:100px}
+  .wrap{padding:24px 16px 60px}
+  .fbar{flex-direction:column;align-items:stretch}
+  .factions{margin-left:0;justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tl">
+    <div class="bico">📊</div>
+    <div class="brand-group">
+      <div class="bn">BookIt</div>
+      <div class="bsub">Venue Management</div>
+    </div>
+    <div class="topbar-divider"></div>
+    <span class="portal-pill">📊 Analytics</span>
+  </div>
+  <div class="tr">
+    <div class="up">
+      <div class="ua">A</div>
+      <div>
+        <div class="ue" id="adminEmail">Loading…</div>
+        <div class="ur" id="adminRole">Venue Admin</div>
+      </div>
+    </div>
+    <button class="lob" onclick="logoutNow()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="ph-icon">📊</div>
+      <div>
+        <div class="page-header-eyebrow">✦ Venue Admin</div>
+        <h1>Reports & Analytics</h1>
+        <p id="venueSubtitle">Deep-dive into bookings and feedback for your venue</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOGGLE -->
+  <div class="toggle-outer">
+    <button class="tog on" id="togB" onclick="switchType('bookings')">📅 Booking Analytics</button>
+    <button class="tog" id="togF" onclick="switchType('feedback')">💬 Feedback Analytics</button>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="fbar">
+    <div class="fg"><label>From Date</label><input type="date" id="fromDate"></div>
+    <div class="fg"><label>To Date</label><input type="date" id="toDate"></div>
+    <div class="factions">
+      <button class="btn btn-gen" onclick="generate()">📈 Generate</button>
+      <button class="btn btn-clr" onclick="clearF()">↺ Clear</button>
+      <button class="btn btn-csv" onclick="exportCSV()">⬇ Excel</button>
+      <button class="btn btn-pdf" onclick="exportPDF()">⬇ PDF</button>
+    </div>
+  </div>
+
+  <!-- LOADER -->
+  <div id="loader" class="loader">
+    <div class="spinner"></div>
+    <p>Fetching &amp; crunching data…</p>
+  </div>
+
+  <!-- REPORT BODY -->
+  <div id="rBody" class="hidden"></div>
+
+  <button class="back-btn" onclick="location.href='admin.html'">← Back to Dashboard</button>
+
+</div>
+
+<!-- ═══════════ SCRIPT — COMPLETELY UNTOUCHED ═══════════ -->
+<script type="module">
+import { onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+    collection, query, where, getDocs, doc, getDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* ── state ── */
+let bookings = [], feedback = [], charts = {}, type = 'bookings', lastFiltered = [];
+let adminVenue = "";
+let venueName = "";
+
+/* ── auth ── */
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        location.href = "index.html";
+        return;
+    }
+    
+    document.getElementById("adminEmail").textContent = user.email;
+
+    adminVenue = sessionStorage.getItem('adminVenue');
+    
+    if (!adminVenue) {
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            adminVenue = userData.venueslug || userData.venueSlug;
+            if (adminVenue) { sessionStorage.setItem('adminVenue', adminVenue); }
+        }
+    }
+
+    if (!adminVenue) {
+        alert("Venue not found for this admin");
+        location.href = "admin.html";
+        return;
+    }
+
+    venueName = formatVenueName(adminVenue);
+    document.getElementById("adminRole").textContent = `${venueName} Admin`;
+    document.getElementById("venueSubtitle").textContent = `Deep-dive into bookings and feedback for ${venueName}`;
+
+    await loadData();
+    generate();
+});
+
+window.logoutNow = function() { 
+    sessionStorage.clear();
+    signOut(auth).then(() => location.href = "index.html"); 
+};
+
+function formatVenueName(slug) {
+    if (!slug) return "Venue";
+    return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+/* ── load ── */
+async function loadData() {
+    try {
+        const bQ = query(
+            collection(db, "bookings"),
+            where("facilityType", "==", "venue"),
+            where("facility", "==", adminVenue)
+        );
+        const bSnap = await getDocs(bQ);
+        bookings = [];
+        bSnap.forEach(d => { const v = d.data(); if (v.status !== "cancelled") bookings.push(v); });
+
+        const fQ = query(
+            collection(db, "feedback"),
+            where("category", "==", "venue"),
+            where("facility", "==", adminVenue)
+        );
+        const fSnap = await getDocs(fQ);
+        feedback = [];
+        fSnap.forEach(d => feedback.push(d.data()));
+    } catch (e) { 
+        console.error("Error loading data:", e); 
+        alert("Error loading data: " + e.message);
+    }
+}
+
+/* ── toggle ── */
+window.switchType = function(t) {
+    type = t;
+    document.getElementById("togB").classList.toggle("on", t === "bookings");
+    document.getElementById("togF").classList.toggle("on", t === "feedback");
+    generate();
+};
+
+/* ── generate ── */
+window.generate = async function() {
+    document.getElementById("loader").classList.remove("hidden");
+    document.getElementById("rBody").classList.add("hidden");
+    Object.values(charts).forEach(c => c.destroy()); 
+    charts = {};
+
+    await new Promise(r => setTimeout(r, 420));
+
+    const from = document.getElementById("fromDate").value;
+    const to = document.getElementById("toDate").value;
+
+    if (type === "bookings") {
+        let d = [...bookings];
+        if (from) d = d.filter(b => b.date >= from);
+        if (to) d = d.filter(b => b.date <= to);
+        lastFiltered = d;
+        renderBookings(d);
+    } else {
+        let d = [...feedback];
+        if (from) { const f = new Date(from); d = d.filter(x => x.createdAt && x.createdAt.toDate() >= f); }
+        if (to) { const t = new Date(to); t.setHours(23, 59, 59); d = d.filter(x => x.createdAt && x.createdAt.toDate() <= t); }
+        lastFiltered = d;
+        renderFeedback(d);
+    }
+
+    document.getElementById("loader").classList.add("hidden");
+    document.getElementById("rBody").classList.remove("hidden");
+};
+
+/* ════ BOOKING REPORT ════ */
+function renderBookings(data) {
+    const dateC = grp(data, b => b.date);
+    const dayN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayC = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
+    data.forEach(b => dayC[dayN[new Date(b.date).getDay()]]++);
+
+    const hourC = {};
+    data.forEach(b => { 
+        if (!b.time) return; 
+        const h = b.time.split("-")[0].split(":")[0]; 
+        hourC[h + ":00"] = (hourC[h + ":00"] || 0) + 1; 
+    });
+    const sortH = Object.keys(hourC).sort();
+
+    const userC = grp(data, b => b.email);
+    const topU = Object.entries(userC).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+    const users = new Set(data.map(b => b.email)).size;
+    const peakH = Object.entries(hourC).sort((a, b) => b[1] - a[1])[0];
+    const peakD = Object.entries(dayC).sort((a, b) => b[1] - a[1])[0];
+    const uniqueDates = new Set(data.map(b => b.date)).size;
+    const avgPerDay = uniqueDates > 0 ? (data.length / uniqueDates).toFixed(1) : 0;
+
+    document.getElementById("rBody").innerHTML = `
+    <div class="stats-row">
+        <div class="sc"><div class="sc-icon">📅</div><div class="sc-val">${data.length}</div><div class="sc-label">Total Bookings</div></div>
+        <div class="sc"><div class="sc-icon">👥</div><div class="sc-val">${users}</div><div class="sc-label">Unique Users</div></div>
+        <div class="sc"><div class="sc-icon">📊</div><div class="sc-val">${avgPerDay}</div><div class="sc-label">Avg/Day</div></div>
+        <div class="sc"><div class="sc-icon">⏰</div><div class="sc-val">${peakH ? peakH[0] : '—'}</div><div class="sc-label">Peak Hour</div></div>
+        <div class="sc"><div class="sc-icon">📆</div><div class="sc-val">${peakD ? peakD[0] : '—'}</div><div class="sc-label">Busiest Day</div></div>
+    </div>
+
+    <div class="sec-div">📈 Visual Breakdown</div>
+    <div class="cg2">
+        <div class="cc">
+            <div class="cc-head"><h3>📈 Bookings Over Time</h3><p class="cc-desc">Daily count of new bookings plotted on a timeline.</p></div>
+            <div class="cc-box md"><canvas id="cDate"></canvas></div>
+        </div>
+        <div class="cc">
+            <div class="cc-head"><h3>📆 Bookings by Day of Week</h3><p class="cc-desc">Which weekdays get the most bookings?</p></div>
+            <div class="cc-box md"><canvas id="cDay"></canvas></div>
+        </div>
+    </div>
+    <div class="cg2">
+        <div class="cc">
+            <div class="cc-head"><h3>⏰ Peak Hour Analysis</h3><p class="cc-desc">Hourly breakdown across all bookings.</p></div>
+            <div class="cc-box md"><canvas id="cHour"></canvas></div>
+        </div>
+        <div class="cc">
+            <div class="cc-head"><h3>👤 Top 6 Booking Users</h3><p class="cc-desc">Most active users ranked by number of bookings.</p></div>
+            <div class="cc-box md"><canvas id="cUser"></canvas></div>
+        </div>
+    </div>
+
+    <div class="sec-div">📋 Booking Details</div>
+    <div class="tw">
+        <div class="tw-head"><h3>Recent Bookings</h3><p>Latest bookings for ${venueName} — date, user, time slot, and purpose.</p></div>
+        <table>
+            <thead><tr><th>Date</th><th>User Email</th><th>Time Slot</th><th>Purpose</th></tr></thead>
+            <tbody>${data.slice(0, 20).map(b => `
+                <tr>
+                    <td>${b.date || '—'}</td>
+                    <td>${maskEmail(b.email)}</td>
+                    <td>${b.time || '—'}</td>
+                    <td>${(b.purpose || '—').substring(0, 50)}${(b.purpose || '').length > 50 ? '...' : ''}</td>
+                </tr>`).join('')}
+            </tbody>
+        </table>
+    </div>`;
+
+    charts.cDate = lineC('cDate', Object.keys(dateC).sort(), Object.keys(dateC).sort().map(d => dateC[d]), '#10b981', 'rgba(16,185,129,.12)');
+    charts.cDay = barC('cDay', Object.keys(dayC), Object.values(dayC), ['rgba(6,95,70,.75)']);
+    charts.cHour = lineC('cHour', sortH, sortH.map(h => hourC[h]), '#059669', 'rgba(5,150,105,.12)');
+    charts.cUser = hbarC('cUser', topU.map(u => u[0].split('@')[0]), topU.map(u => u[1]), null);
+}
+
+/* ════ FEEDBACK REPORT ════ */
+function renderFeedback(data) {
+    const cats = ["Cleanliness", "Ease of Booking", "Equipment Availability", "Ground / Court Quality", "Lighting Quality", "Safety Measures", "Staff Support", "Overall Experience"];
+    const catAvg = {};
+    cats.forEach(c => { const v = data.map(f => f.ratings?.[c] || 0).filter(x => x > 0); catAvg[c] = v.length ? (v.reduce((a, b) => a + b, 0) / v.length) : 0; });
+
+    const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    data.forEach(f => { const r = Math.round(f.ratings?.["Overall Experience"] || 0); if (r >= 1 && r <= 5) dist[r]++; });
+
+    const trend = {};
+    data.forEach(f => { if (!f.createdAt) return; const d = f.createdAt.toDate().toLocaleDateString(); trend[d] = (trend[d] || 0) + 1; });
+    const tDates = Object.keys(trend).sort((a, b) => new Date(a) - new Date(b));
+
+    const total = data.length;
+    const avg = total ? (data.reduce((s, f) => s + (f.ratings?.["Overall Experience"] || 0), 0) / total).toFixed(1) : 0;
+    const low = data.filter(f => (f.ratings?.["Overall Experience"] || 0) <= 2).length;
+    const high = data.filter(f => (f.ratings?.["Overall Experience"] || 0) >= 4).length;
+    const lowest = cats.reduce((a, c) => catAvg[c] < (catAvg[a] || 6) ? c : a, cats[0]);
+
+    document.getElementById("rBody").innerHTML = `
+    <div class="stats-row">
+        <div class="sc"><div class="sc-icon">💬</div><div class="sc-val">${total}</div><div class="sc-label">Total Feedback</div></div>
+        <div class="sc"><div class="sc-icon">⭐</div><div class="sc-val">${avg}<span>/5</span></div><div class="sc-label">Avg Rating</div></div>
+        <div class="sc"><div class="sc-icon">😊</div><div class="sc-val">${high}</div><div class="sc-label">High Ratings ≥4</div></div>
+        <div class="sc"><div class="sc-icon">⚠️</div><div class="sc-val">${low}</div><div class="sc-label">Low Ratings ≤2</div></div>
+        <div class="sc"><div class="sc-icon">📌</div><div class="sc-val" style="font-size:16px;font-family:var(--fb)">${lowest}</div><div class="sc-label">Needs Attention</div></div>
+    </div>
+
+    <div class="sec-div">📈 Visual Breakdown</div>
+    <div class="cg2">
+        <div class="cc">
+            <div class="cc-head"><h3>🎯 Rating Distribution</h3><p class="cc-desc">How Overall Experience ratings are spread from 1 to 5 stars.</p></div>
+            <div class="cc-box md"><canvas id="fDist"></canvas></div>
+        </div>
+        <div class="cc">
+            <div class="cc-head"><h3>📡 Rating Categories (Radar)</h3><p class="cc-desc">Average score across all 8 dimensions.</p></div>
+            <div class="cc-box md"><canvas id="fRadar"></canvas></div>
+        </div>
+    </div>
+    <div class="cg2">
+        <div class="cc full">
+            <div class="cc-head"><h3>📈 Feedback Trend Over Time</h3><p class="cc-desc">Daily feedback volume over the selected period.</p></div>
+            <div class="cc-box"><canvas id="fTrend"></canvas></div>
+        </div>
+    </div>
+
+    <div class="sec-div">📋 Recent Feedback</div>
+    <div class="tw">
+        <div class="tw-head"><h3>Latest Feedback Submissions</h3><p>Most recent feedback for ${venueName}.</p></div>
+        <table>
+            <thead><tr><th>Date</th><th>User</th><th>Overall</th><th>Clean</th><th>Equipment</th><th>Ground</th><th>Comment</th></tr></thead>
+            <tbody>${data.slice(0, 20).map(f => {
+                const d = f.createdAt ? f.createdAt.toDate().toLocaleDateString('en-CA') : '';
+                const r = f.ratings || {};
+                return `<tr>
+                    <td>${d}</td><td>${maskEmail(f.userEmail)}</td>
+                    <td>${r["Overall Experience"] || '—'}</td><td>${r["Cleanliness"] || '—'}</td>
+                    <td>${r["Equipment Availability"] || '—'}</td><td>${r["Ground / Court Quality"] || '—'}</td>
+                    <td>${(f.comment || '—').substring(0, 50)}${(f.comment || '').length > 50 ? '...' : ''}</td>
+                </tr>`;
+            }).join('')}
+            </tbody>
+        </table>
+    </div>`;
+
+    charts.fDist = new Chart(document.getElementById('fDist'), {
+        type: 'doughnut',
+        data: { labels: ['1 ★', '2 ★', '3 ★', '4 ★', '5 ★'], datasets: [{ data: Object.values(dist), backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#065f46'], borderColor: 'rgba(0,0,0,.06)', borderWidth: 3 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#334155', padding: 16, font: { size: 13, weight: '600' } } } } }
+    });
+
+    charts.fRadar = new Chart(document.getElementById('fRadar'), {
+        type: 'radar',
+        data: { labels: cats, datasets: [{ label: 'Avg', data: cats.map(c => catAvg[c]), backgroundColor: 'rgba(16,185,129,.12)', borderColor: 'rgba(16,185,129,1)', borderWidth: 2.5, pointBackgroundColor: 'rgba(16,185,129,1)', pointRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { beginAtZero: true, max: 5, ticks: { color: '#475569', stepSize: 1, backdropColor: 'transparent' }, grid: { color: 'rgba(6,78,59,.12)' }, pointLabels: { color: '#334155', font: { size: 11, weight: '600' } } } } }
+    });
+
+    charts.fTrend = lineC('fTrend', tDates, tDates.map(d => trend[d]), '#047857', 'rgba(4,120,87,.10)');
+}
+
+/* ════ CHART HELPERS ════ */
+const sc = () => ({
+    y: { beginAtZero: true, ticks: { color: '#475569' }, grid: { color: 'rgba(6,78,59,.08)' } },
+    x: { ticks: { color: '#475569', maxRotation: 40 }, grid: { color: 'rgba(6,78,59,.06)' } }
+});
+
+function barC(id, labels, vals, colors) {
+    return new Chart(document.getElementById(id), {
+        type: 'bar',
+        data: { labels, datasets: [{ data: vals, backgroundColor: colors.length === 1 ? colors[0] : labels.map((_, i) => colors[i % colors.length]), borderRadius: 5, borderSkipped: false }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: sc() }
+    });
+}
+
+function lineC(id, labels, vals, border, bg) {
+    return new Chart(document.getElementById(id), {
+        type: 'line',
+        data: { labels, datasets: [{ data: vals, borderColor: border, backgroundColor: bg, borderWidth: 2.5, fill: true, tension: .38, pointRadius: 2.5, pointBackgroundColor: border, pointHoverRadius: 5 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: sc() }
+    });
+}
+
+function hbarC(id, labels, vals, color) {
+    const rPal = ['rgba(16,185,129,.85)', 'rgba(6,95,70,.85)', 'rgba(4,120,87,.85)', 'rgba(5,150,105,.85)', 'rgba(52,211,153,.85)', 'rgba(167,243,208,.85)'];
+    return new Chart(document.getElementById(id), {
+        type: 'bar',
+        data: { labels, datasets: [{ data: vals, backgroundColor: color || labels.map((_, i) => rPal[i % rPal.length]), borderRadius: 5, borderSkipped: false }] },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { color: '#475569' }, grid: { color: 'rgba(6,78,59,.08)' } }, y: { ticks: { color: '#475569' }, grid: { color: 'rgba(6,78,59,.06)' } } } }
+    });
+}
+
+function grp(arr, fn) { const m = {}; arr.forEach(i => { const k = fn(i); m[k] = (m[k] || 0) + 1; }); return m; }
+
+function maskEmail(email = "") {
+    if (!email || typeof email !== "string") return "Anonymous";
+    const parts = email.split("@");
+    if (parts.length !== 2) return "Anonymous";
+    const name = parts[0]; const domain = parts[1];
+    if (name.length < 2) return "Anonymous";
+    return name[0] + "..." + name[name.length - 1] + "@" + domain;
+}
+
+/* ════ EXPORT CSV ════ */
+window.exportCSV = function() {
+    let csv = '', name = '';
+    if (type === 'bookings') {
+        name = `${venueName}-Booking-Report`;
+        csv += 'Date,Email,Time,Purpose\n';
+        lastFiltered.forEach(b => { csv += `${b.date || ''},${(b.email || '').replace(/,/g, ';')},${(b.time || '').replace(/,/g, ';')},${(b.purpose || '').replace(/,/g, ';').replace(/\n/g, ' ')}\n`; });
+    } else {
+        name = `${venueName}-Feedback-Report`;
+        csv += 'Date,User Email,Overall,Cleanliness,Ease of Booking,Equipment Availability,Ground Quality,Lighting,Safety,Staff Support,Comment\n';
+        lastFiltered.forEach(f => {
+            const d = f.createdAt ? f.createdAt.toDate().toLocaleDateString('en-CA') : '';
+            const r = f.ratings || {};
+            csv += `${d},${(f.userEmail || '').replace(/,/g, ';')},${r["Overall Experience"] || ''},${r["Cleanliness"] || ''},${r["Ease of Booking"] || ''},${r["Equipment Availability"] || ''},${r["Ground / Court Quality"] || ''},${r["Lighting Quality"] || ''},${r["Safety Measures"] || ''},${r["Staff Support"] || ''},${(f.comment || '').replace(/,/g, ';').replace(/\n/g, ' ')}\n`;
+        });
+    }
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name + '-' + new Date().toISOString().split('T')[0] + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+};
+
+/* ════ EXPORT PDF ════ */
+window.exportPDF = function() {
+    const body = document.getElementById("rBody");
+    if (!body || body.classList.contains("hidden")) { alert("Please generate a report first!"); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    let yPos = margin;
+    doc.setFontSize(24); doc.setFont(undefined, 'bold');
+    doc.text(type === 'bookings' ? `${venueName} - Booking Analytics` : `${venueName} - Feedback Analytics`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 15;
+    const fromDate = document.getElementById("fromDate").value;
+    const toDate = document.getElementById("toDate").value;
+    if (fromDate && toDate) { doc.setFontSize(11); doc.setFont(undefined, 'normal'); doc.text(`Period: ${fromDate} to ${toDate}`, pageWidth / 2, yPos, { align: 'center' }); yPos += 10; }
+    const stats = document.querySelectorAll('.sc');
+    if (stats.length > 0) {
+        doc.setFontSize(16); doc.setFont(undefined, 'bold'); doc.text('Summary Statistics', margin, yPos); yPos += 8;
+        doc.setFontSize(10); doc.setFont(undefined, 'normal');
+        stats.forEach((stat) => {
+            const label = stat.querySelector('.sc-label').textContent;
+            const value = stat.querySelector('.sc-val').textContent;
+            if (yPos > pageHeight - 20) { doc.addPage(); yPos = margin; }
+            doc.text(`${label}: ${value}`, margin + 5, yPos); yPos += 6;
+        });
+        yPos += 5;
+    }
+    const canvases = document.querySelectorAll('.cc canvas');
+    const chartTitles = document.querySelectorAll('.cc-head h3');
+    canvases.forEach((canvas, idx) => {
+        if (yPos > pageHeight - 80) { doc.addPage(); yPos = margin; }
+        if (chartTitles[idx]) { doc.setFontSize(12); doc.setFont(undefined, 'bold'); doc.text(chartTitles[idx].textContent, margin, yPos); yPos += 8; }
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - (margin * 2);
+        const imgHeight = 60;
+        doc.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight);
+        yPos += imgHeight + 10;
+    });
+    doc.save(`${venueName}-${type === 'bookings' ? 'Booking' : 'Feedback'}-Report-${new Date().toISOString().split('T')[0]}.pdf`);
+};
+
+/* ── clear ── */
+window.clearF = function() {
+    document.getElementById("fromDate").value = '';
+    document.getElementById("toDate").value = '';
+    generate();
+};
+</script>
+</body>
+</html>

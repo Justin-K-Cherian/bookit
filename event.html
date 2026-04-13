@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Events – MBITS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Outfit:wght@200;300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --primary:      #19304D;
+  --primary-mid:  #1f3c5e;
+  --primary-lt:   #274d78;
+  --primary-deep: #0f1f30;
+  --card-bg:      #1a3352;
+  --head-bg:      #162c47;
+  --gold:         #c9a96e;
+  --gold-lt:      #e8cfa0;
+  --gold-deep:    #a07840;
+  --white:        #ffffff;
+  --on-card:      rgba(255,255,255,0.90);
+  --on-card-mid:  rgba(255,255,255,0.50);
+  --on-card-soft: rgba(255,255,255,0.26);
+  --glass:        rgba(255,255,255,0.05);
+  --glass-border: rgba(255,255,255,0.09);
+  --input-bg:     #f4f7fb;
+  --ink:          #0f1f30;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100vh;font-family:'Outfit',sans-serif;background:#19304D;overflow-x:hidden;color:var(--on-card)}
+
+/* ── BACKGROUND ── */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.bg-depth{position:absolute;inset:0;background:
+  radial-gradient(ellipse 90% 80% at 0% 0%,rgba(31,60,94,0.70) 0%,transparent 55%),
+  radial-gradient(ellipse 70% 60% at 100% 100%,rgba(10,18,28,0.80) 0%,transparent 55%)}
+.stripes{position:absolute;inset:-60% -20%;width:140%;height:220%;transform:rotate(-28deg)}
+.stripe{position:absolute;top:0;bottom:0}
+.s1{left:14%;width:7%;background:rgba(255,255,255,0.038)}
+.s2{left:25%;width:11%;background:rgba(255,255,255,0.028)}
+.s3{left:41%;width:5%;background:rgba(255,255,255,0.048)}
+.s4{left:55%;width:2%;background:rgba(255,255,255,0.025)}
+.se{position:absolute;top:0;bottom:0;left:22%;width:1.5px;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,0.22) 15%,rgba(255,255,255,0.28) 40%,rgba(255,255,255,0.14) 75%,transparent 100%)}
+.bg-hlines{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px);
+  background-size:100% 180px;background-position:0 90px}
+.bg-grain{position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size:220px;opacity:0.55}
+.bg-vignette{position:absolute;inset:0;
+  background:radial-gradient(ellipse 110% 110% at 50% 50%,transparent 45%,rgba(6,12,22,0.65) 100%)}
+.bg-corners{position:absolute;inset:0;pointer-events:none}
+
+.top-stripe{position:fixed;top:0;left:0;right:0;z-index:300;height:2px;
+  background:linear-gradient(90deg,var(--gold-deep),var(--gold),var(--gold-lt),var(--gold))}
+.bot-strip{position:fixed;bottom:0;left:0;right:0;z-index:300;height:2px;
+  background:linear-gradient(90deg,var(--primary-lt),var(--primary-mid),var(--gold-deep))}
+
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:2px;z-index:200;display:flex;align-items:center;
+  gap:14px;padding:0 32px;height:64px;
+  background:rgba(15,31,48,0.85);
+  border-bottom:1px solid rgba(201,169,110,0.12);
+  backdrop-filter:blur(20px);
+  box-shadow:0 4px 32px rgba(0,0,0,0.28)}
+.topbar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--gold),var(--gold-deep))}
+.topbar-eyebrow{font-size:8px;font-weight:500;letter-spacing:4px;text-transform:uppercase;
+  color:rgba(255,255,255,0.28);display:block;line-height:1;margin-bottom:3px}
+.topbar-title{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:300;
+  color:var(--white);display:flex;align-items:center;gap:8px;line-height:1}
+
+/* ── HERO ── */
+.hero{position:relative;z-index:5;text-align:center;padding:52px 24px 34px}
+.hero-eyebrow{display:block;font-size:9px;font-weight:500;letter-spacing:7px;
+  text-transform:uppercase;color:rgba(255,255,255,0.28);margin-bottom:14px}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(56px,10vw,108px);
+  font-weight:300;letter-spacing:-3px;color:var(--white);line-height:0.88;
+  text-shadow:0 2px 80px rgba(0,0,0,0.5)}
+.hero-title em{font-style:italic;color:var(--gold);font-weight:300}
+.hero-band{display:inline-flex;align-items:center;gap:0;margin-top:22px}
+.hero-rule{flex:1;min-width:50px;height:1px;background:rgba(255,255,255,0.10)}
+.hero-band-label{padding:7px 28px;font-size:9px;font-weight:500;letter-spacing:4px;
+  text-transform:uppercase;color:rgba(255,255,255,0.35);
+  border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.03)}
+
+/* ── CONTAINER ── */
+.container{position:relative;z-index:5;max-width:1200px;margin:0 auto;padding:0 24px 80px}
+
+/* ── FILTER SECTION ── */
+.filter-section{
+  background:var(--card-bg);
+  border:1px solid var(--glass-border);
+  padding:26px 30px;margin-bottom:20px;
+  position:relative;
+  box-shadow:0 2px 0 var(--gold),0 8px 40px rgba(0,0,0,0.30);
+  animation:fadeInUp .5s ease both;
+}
+.filter-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),var(--gold-lt),var(--gold),transparent)}
+.filter-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px}
+.filter-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;
+  color:var(--on-card);display:flex;align-items:center;gap:8px;letter-spacing:-.3px}
+
+/* ── VIEW TOGGLE ── */
+.view-toggle{display:flex;gap:6px;background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.09);padding:4px}
+.view-btn{padding:8px 18px;border:none;background:transparent;
+  font-family:'DM Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:2.5px;
+  text-transform:uppercase;color:rgba(255,255,255,0.38);cursor:pointer;transition:all .18s}
+.view-btn.active{background:rgba(201,169,110,0.14);color:var(--gold);
+  box-shadow:0 0 0 1px rgba(201,169,110,0.22) inset}
+.view-btn:hover:not(.active){background:rgba(255,255,255,0.06);color:var(--on-card)}
+
+.filter-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.filter-group{display:flex;flex-direction:column;gap:5px}
+.filter-label{font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;
+  color:rgba(255,255,255,0.32)}
+.filter-input{
+  padding:11px 14px;border:1px solid rgba(255,255,255,0.10);
+  background:var(--input-bg);color:var(--ink);
+  font-family:'Outfit',sans-serif;font-size:13px;font-weight:400;
+  transition:all .18s;
+}
+.filter-input::placeholder{color:rgba(25,48,77,0.40)}
+.filter-input:focus{outline:none;border-color:var(--gold);background:var(--white);
+  box-shadow:0 0 0 3px rgba(201,169,110,0.12)}
+.filter-input option{background:#162c47;color:var(--on-card)}
+.filter-input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(0.3) sepia(1) saturate(0.5)}
+
+/* ── FILTER ACTIONS ── */
+.filter-actions{display:flex;gap:10px;margin-top:16px}
+.filter-btn{
+  padding:11px 24px;border:none;
+  font-family:'DM Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:3px;text-transform:uppercase;
+  cursor:pointer;transition:all .20s ease;position:relative;overflow:hidden;
+}
+.filter-btn::before{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.14),transparent);
+  transform:skewX(-15deg);transition:left .5s ease}
+.filter-btn:hover::before{left:160%}
+.apply-btn{
+  background:rgba(201,169,110,0.12);color:var(--gold);flex:1;
+  border:1px solid rgba(201,169,110,0.25);
+}
+.apply-btn:hover{background:rgba(201,169,110,0.22);border-color:rgba(201,169,110,0.45);
+  color:var(--gold-lt);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.25)}
+.reset-btn{background:rgba(255,255,255,0.05);color:var(--on-card-mid);
+  border:1px solid rgba(255,255,255,0.10)}
+.reset-btn:hover{background:rgba(255,255,255,0.10);color:var(--on-card)}
+
+/* ── CALENDAR VIEW ── */
+.calendar-view{display:none;background:var(--card-bg);border:1px solid var(--glass-border);
+  padding:24px 28px;margin-bottom:20px;box-shadow:0 2px 0 var(--gold),0 8px 40px rgba(0,0,0,0.24)}
+.calendar-view::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),var(--gold-lt),var(--gold),transparent)}
+.calendar-view{position:relative}
+.calendar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.calendar-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;
+  letter-spacing:-0.5px;color:var(--on-card)}
+.calendar-nav{display:flex;gap:8px}
+.calendar-nav-btn{
+  padding:9px 18px;border:none;
+  background:rgba(255,255,255,0.05);color:var(--on-card);
+  border:1px solid rgba(255,255,255,0.10);
+  font-family:'DM Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer;transition:all .18s;
+}
+.calendar-nav-btn:hover{background:rgba(201,169,110,0.14);color:var(--gold);border-color:rgba(201,169,110,0.28)}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.calendar-day-header{text-align:center;font-family:'DM Mono',monospace;font-size:9px;font-weight:600;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--on-card-soft);padding:8px 0}
+.calendar-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+  cursor:pointer;transition:all .18s;position:relative;padding:5px}
+.calendar-day:hover{border-color:rgba(201,169,110,0.32);background:rgba(201,169,110,0.08)}
+.calendar-day.other-month{opacity:0.20;cursor:default}
+.calendar-day.today{background:rgba(201,169,110,0.10);border-color:rgba(201,169,110,0.28)}
+.calendar-day.has-event{background:rgba(201,169,110,0.14);border-color:rgba(201,169,110,0.38)}
+.calendar-day-number{font-family:'DM Mono',monospace;font-size:14px;color:var(--on-card)}
+.calendar-day.other-month .calendar-day-number{color:rgba(255,255,255,0.20)}
+.calendar-day-events{font-size:8px;font-weight:700;color:var(--gold);letter-spacing:.3px}
+
+/* ── RESULTS ── */
+.results-count{font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;
+  color:var(--on-card-soft);margin-bottom:14px}
+
+/* ── EVENT CARDS ── */
+.events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-bottom:28px}
+
+.event-card{
+  background:var(--card-bg);border:1px solid var(--glass-border);
+  overflow:hidden;position:relative;
+  transition:transform .28s cubic-bezier(.16,1,.3,1),border-color .28s,box-shadow .28s;
+  animation:fadeInUp .4s ease both;
+  box-shadow:2px 2px 0 rgba(0,0,0,0.20);
+}
+.event-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold-deep),var(--gold),var(--gold-deep),transparent);
+  opacity:0;transition:opacity .25s;z-index:2}
+.event-card::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(125deg,transparent 30%,rgba(255,255,255,0.04) 50%,transparent 70%);
+  transform:translate(-130%,0);transition:transform .55s ease;z-index:1;pointer-events:none}
+.event-card:hover{transform:translateY(-5px);border-color:rgba(201,169,110,0.20);
+  box-shadow:0 -2px 0 var(--gold),0 20px 52px rgba(0,0,0,0.48)}
+.event-card:hover::before{opacity:1}
+.event-card:hover::after{transform:translate(130%,0)}
+
+.event-header{width:100%;height:96px;position:relative;overflow:hidden;flex-shrink:0}
+.event-header-img{width:100%;height:100%;object-fit:cover;
+  filter:saturate(.18) brightness(.52);transition:filter .28s,transform .28s}
+.event-card:hover .event-header-img{filter:saturate(.45) brightness(.68);transform:scale(1.08)}
+.event-header::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(15,31,48,0.40),rgba(15,31,48,0.78));pointer-events:none}
+.event-purpose{position:absolute;bottom:12px;left:16px;right:16px;z-index:1;
+  font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;
+  letter-spacing:-.3px;color:var(--white);line-height:1.1;
+  text-shadow:0 2px 12px rgba(0,0,0,0.50);transition:color .22s}
+.event-card:hover .event-purpose{color:var(--gold-lt)}
+
+.event-body{padding:14px 18px 8px;position:relative;z-index:1}
+.event-detail{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px;
+  border-bottom:1px solid rgba(255,255,255,0.06)}
+.event-detail:last-child{border-bottom:none;padding-bottom:0}
+.event-detail:first-child{padding-top:0}
+.event-icon{width:30px;height:30px;flex-shrink:0;
+  background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.15);
+  display:flex;align-items:center;justify-content:center;font-size:13px}
+.event-detail-text{flex:1;min-width:0}
+.event-detail-label{font-family:'DM Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+  color:var(--on-card-soft);margin-bottom:1px}
+.event-detail-value{font-size:13px;font-weight:400;color:var(--on-card);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .22s}
+.event-card:hover .event-detail-value{color:rgba(255,255,255,0.96)}
+
+.event-footer{padding:8px 18px 14px;display:flex;justify-content:space-between;
+  align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,0.06);position:relative;z-index:1}
+.event-date-badge{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--on-card-soft);letter-spacing:1px}
+.add-calendar-btn{
+  background:rgba(201,169,110,0.10);border:1px solid rgba(201,169,110,0.22);
+  padding:7px 14px;
+  font-family:'DM Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+  color:var(--gold);cursor:pointer;transition:all .20s;
+  display:flex;align-items:center;gap:5px;position:relative;overflow:hidden;
+}
+.add-calendar-btn::before{content:'';position:absolute;top:0;left:50%;right:50%;height:1px;
+  background:var(--gold);transition:left .26s,right .26s}
+.add-calendar-btn:hover::before{left:0;right:0}
+.add-calendar-btn:hover{background:rgba(201,169,110,0.20);border-color:rgba(201,169,110,0.40);
+  color:var(--gold-lt)}
+
+/* ── LOADING / EMPTY ── */
+.loading{text-align:center;padding:80px 20px}
+.spinner{width:40px;height:40px;margin:0 auto 20px;
+  border:2px solid rgba(201,169,110,0.14);border-top-color:var(--gold);
+  border-radius:50%;animation:spin .80s linear infinite}
+.loading p{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;
+  letter-spacing:3px;color:var(--on-card-mid)}
+.empty-state{text-align:center;padding:80px 20px;animation:fadeIn .5s ease}
+.empty-icon{font-size:64px;margin-bottom:20px;opacity:0.35}
+.empty-text{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;
+  letter-spacing:-1px;color:var(--on-card);margin-bottom:10px}
+.empty-subtext{font-size:13px;color:var(--on-card-soft);font-weight:400}
+
+/* ── BACK BUTTON ── */
+.back-btn-container{text-align:center;margin-top:44px;
+  animation:fadeIn .6s ease .3s both;
+  display:flex;align-items:center;gap:16px;justify-content:center}
+.back-btn-line{flex:0 0 70px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,169,110,0.20),transparent)}
+.back-btn{
+  padding:13px 48px;border:none;
+  background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.65);
+  font-family:'DM Mono',monospace;font-size:9px;font-weight:600;letter-spacing:4.5px;text-transform:uppercase;
+  cursor:pointer;position:relative;overflow:hidden;
+  border:1px solid rgba(255,255,255,0.12);
+  transition:all .24s ease;
+}
+.back-btn::before{content:"";position:absolute;top:0;left:50%;right:50%;height:1.5px;
+  background:var(--gold);transition:left .26s,right .26s}
+.back-btn:hover::before{left:0;right:0}
+.back-btn:hover{background:rgba(201,169,110,0.10);border-color:rgba(201,169,110,0.28);
+  color:var(--gold);transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,0.30)}
+.back-btn:active{transform:translate(0,0)}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.event-card:nth-child(1){animation-delay:.05s}.event-card:nth-child(2){animation-delay:.10s}
+.event-card:nth-child(3){animation-delay:.15s}.event-card:nth-child(4){animation-delay:.20s}
+.event-card:nth-child(5){animation-delay:.25s}.event-card:nth-child(6){animation-delay:.30s}
+
+@media(max-width:768px){
+  .topbar{padding:0 16px;height:56px}
+  .hero{padding:40px 16px 26px}
+  .events-grid{grid-template-columns:1fr}
+  .filter-controls{grid-template-columns:1fr}
+  .calendar-grid{gap:3px}
+  .back-btn-container{flex-direction:column}
+  .back-btn-line{display:none}
+}
+  </style>
+</head>
+
+<body>
+
+<div class="bg">
+  <div class="bg-depth"></div>
+  <div class="stripes">
+    <div class="stripe s1"></div><div class="stripe s2"></div>
+    <div class="stripe s3"></div><div class="stripe s4"></div>
+    <div class="se"></div>
+  </div>
+  <div class="bg-hlines"></div>
+  <div class="bg-grain"></div>
+  <div class="bg-vignette"></div>
+  <svg class="bg-corners" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <polyline points="70,48 24,48 24,4 70,4"           fill="none" stroke="rgba(201,169,110,0.14)" stroke-width="1"/>
+    <polyline points="1370,4 1416,4 1416,48 1370,48"   fill="none" stroke="rgba(201,169,110,0.10)" stroke-width="1"/>
+    <polyline points="24,852 24,896 70,896"             fill="none" stroke="rgba(201,169,110,0.08)" stroke-width="1"/>
+    <polyline points="1416,852 1416,896 1370,896"       fill="none" stroke="rgba(201,169,110,0.07)" stroke-width="1"/>
+    <circle cx="720" cy="42" r="2" fill="rgba(201,169,110,0.38)"/>
+    <line x1="80"  y1="4" x2="680" y2="4"    stroke="rgba(201,169,110,0.06)" stroke-width="1"/>
+    <line x1="760" y1="4" x2="1360" y2="4"   stroke="rgba(201,169,110,0.06)" stroke-width="1"/>
+    <polygon points="720,34 727,41 720,48 713,41" fill="none" stroke="rgba(201,169,110,0.25)" stroke-width="1"/>
+  </svg>
+</div>
+
+<div class="top-stripe"></div>
+<div class="bot-strip"></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div>
+    <span class="topbar-eyebrow">Bookit &nbsp;&#x2014;&nbsp; MBITS</span>
+    <span class="topbar-title">🎉 Events</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <span class="hero-eyebrow">Upcoming &nbsp;&#x2014;&nbsp; Campus Schedule</span>
+  <div class="hero-title">Campus <em>Events</em></div>
+  <div class="hero-band">
+    <span class="hero-rule"></span>
+    <span class="hero-band-label">Explore all college events &amp; venue bookings</span>
+    <span class="hero-rule"></span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Filter Section -->
+  <div class="filter-section">
+    <div class="filter-header">
+      <div class="filter-title">🔍 &nbsp;Filter Events</div>
+      <div class="view-toggle">
+        <button class="view-btn active" onclick="switchView('grid')">📋 &nbsp;Grid</button>
+        <button class="view-btn" onclick="switchView('calendar')">📅 &nbsp;Calendar</button>
+      </div>
+    </div>
+    <div class="filter-controls">
+      <div class="filter-group">
+        <label class="filter-label">Search</label>
+        <input type="text" id="searchInput" class="filter-input" placeholder="Search events...">
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Location</label>
+        <select id="locationFilter" class="filter-input">
+          <option value="">All Locations</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">From Date</label>
+        <input type="date" id="fromDate" class="filter-input">
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">To Date</label>
+        <input type="date" id="toDate" class="filter-input">
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="filter-btn apply-btn" onclick="applyFilters()">Apply Filters</button>
+      <button class="filter-btn reset-btn" onclick="resetFilters()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Calendar View -->
+  <div class="calendar-view" id="calendarView">
+    <div class="calendar-header">
+      <div class="calendar-title" id="calendarTitle">January 2025</div>
+      <div class="calendar-nav">
+        <button class="calendar-nav-btn" onclick="previousMonth()">&#x2190; Prev</button>
+        <button class="calendar-nav-btn" onclick="nextMonth()">Next &#x2192;</button>
+      </div>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
+
+  <div class="results-count" id="resultsCount"></div>
+  <div id="eventsContainer">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading Events…</p>
+    </div>
+  </div>
+
+  <div class="back-btn-container">
+    <div class="back-btn-line"></div>
+    <button class="back-btn" onclick="goBack()">&#x2190; &nbsp;Back to Home</button>
+    <div class="back-btn-line"></div>
+  </div>
+</div>
+
+<!-- ═══ ALL ORIGINAL SCRIPTS — UNTOUCHED ═══ -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDYD768C9UY7PHq8BrQLN8paau3LmXAnFs",
+      authDomain: "bookit-56e35.firebaseapp.com",
+      projectId: "bookit-56e35",
+      storageBucket: "bookit-56e35.appspot.com",
+      messagingSenderId: "813441391899",
+      appId: "1:813441391899:web:d5bf9d33c6b81c983a87be"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let allEvents = [];
+    let filteredEvents = [];
+    let currentView = 'grid';
+    let currentMonth = new Date();
+
+    onAuthStateChanged(auth, user => {
+      if (!user) { window.location.href = 'index.html'; return; }
+      loadEvents();
+    });
+
+    function formatDate(dateStr) {
+      if (!dateStr) return 'Date TBA';
+      const date = new Date(dateStr);
+      const options = { month: 'short', day: 'numeric', year: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    }
+
+    function formatTime(timeStr) {
+      if (!timeStr) return 'Time TBA';
+      if (timeStr.includes('-')) {
+        const [start, end] = timeStr.split('-');
+        return `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
+      }
+      return convertTo12Hour(timeStr);
+    }
+
+    function convertTo12Hour(time) {
+      const [hours, minutes] = time.split(':');
+      let hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      hour = hour % 12 || 12;
+      return `${hour}:${minutes} ${ampm}`;
+    }
+
+    async function loadEvents() {
+      const container = document.getElementById('eventsContainer');
+      try {
+        const bookingsRef = collection(db, 'bookings');
+        const q = query(bookingsRef, where('facilityType', '==', 'venue'));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) { showEmptyState('No Events Scheduled', 'Check back soon for upcoming venue bookings and events!'); return; }
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        allEvents = [];
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.status === 'approved') {
+            const eventDate = new Date(data.date); eventDate.setHours(0, 0, 0, 0);
+            if (eventDate >= today) allEvents.push({ id: doc.id, ...data });
+          }
+        });
+        if (allEvents.length === 0) { showEmptyState('No Upcoming Events', 'All events have passed. Check back soon for new events!'); return; }
+        allEvents.sort((a, b) => { const dateA = new Date(a.date || '9999-12-31'); const dateB = new Date(b.date || '9999-12-31'); return dateA - dateB; });
+        populateLocationFilter();
+        const todayStr = today.toISOString().split('T')[0];
+        document.getElementById('fromDate').value = todayStr;
+        filteredEvents = [...allEvents];
+        displayEvents();
+      } catch (error) {
+        console.error('Error loading events:', error);
+        showEmptyState('Error Loading Events', error.message);
+      }
+    }
+
+    function showEmptyState(title, message) {
+      document.getElementById('eventsContainer').innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">${title}</div><div class="empty-subtext">${message}</div></div>`;
+      document.getElementById('resultsCount').textContent = '';
+    }
+
+    function populateLocationFilter() {
+      const locations = new Set();
+      allEvents.forEach(event => { if (event.facility) locations.add(event.facility); });
+      const select = document.getElementById('locationFilter');
+      locations.forEach(location => { const option = document.createElement('option'); option.value = location; option.textContent = location; select.appendChild(option); });
+    }
+
+    window.applyFilters = function() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const location = document.getElementById('locationFilter').value;
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      filteredEvents = allEvents.filter(event => {
+        if (searchTerm && !event.purpose.toLowerCase().includes(searchTerm)) return false;
+        if (location && event.facility !== location) return false;
+        const eventDate = new Date(event.date);
+        if (fromDate) { const from = new Date(fromDate); if (eventDate < from) return false; }
+        if (toDate) { const to = new Date(toDate); if (eventDate > to) return false; }
+        return true;
+      });
+      displayEvents();
+    };
+
+    window.resetFilters = function() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('locationFilter').value = '';
+      document.getElementById('fromDate').value = '';
+      document.getElementById('toDate').value = '';
+      filteredEvents = [...allEvents];
+      displayEvents();
+    };
+
+    function displayEvents() {
+      const container = document.getElementById('eventsContainer');
+      const resultsCount = document.getElementById('resultsCount');
+      if (filteredEvents.length === 0) { showEmptyState('No Events Found', 'Try adjusting your filters to see more events.'); return; }
+      resultsCount.textContent = `Showing ${filteredEvents.length} event${filteredEvents.length !== 1 ? 's' : ''}`;
+      const grid = document.createElement('div');
+      grid.className = 'events-grid';
+      filteredEvents.forEach((event, index) => { const card = createEventCard(event, index); grid.appendChild(card); });
+      container.innerHTML = '';
+      container.appendChild(grid);
+      if (currentView === 'calendar') renderCalendar();
+    }
+
+    function createEventCard(event, index) {
+      const card = document.createElement('div');
+      card.className = 'event-card';
+      card.innerHTML = `
+        <div class="event-header">
+          <div class="event-purpose">${event.purpose || 'Event'}</div>
+        </div>
+        <div class="event-body">
+          <div class="event-detail"><div class="event-icon">📍</div><div class="event-detail-text"><div class="event-detail-label">Location</div><div class="event-detail-value">${event.facility || 'Venue TBA'}</div></div></div>
+          <div class="event-detail"><div class="event-icon">📅</div><div class="event-detail-text"><div class="event-detail-label">Date</div><div class="event-detail-value">${formatDate(event.date)}</div></div></div>
+          <div class="event-detail"><div class="event-icon">⏰</div><div class="event-detail-text"><div class="event-detail-label">Time</div><div class="event-detail-value">${formatTime(event.time)}</div></div></div>
+        </div>
+        <div class="event-footer">
+          <div class="event-date-badge">${formatDate(event.date)}</div>
+          <button class="add-calendar-btn" onclick="addToGoogleCalendar('${escapeQuotes(event.purpose)}', '${event.date}', '${event.time}', '${escapeQuotes(event.facility)}')">📅 &nbsp;Add to Calendar</button>
+        </div>`;
+      return card;
+    }
+
+    window.switchView = function(view) {
+      currentView = view;
+      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      const calendarView = document.getElementById('calendarView');
+      const eventsContainer = document.getElementById('eventsContainer');
+      if (view === 'calendar') { calendarView.style.display = 'block'; eventsContainer.style.display = 'none'; renderCalendar(); }
+      else { calendarView.style.display = 'none'; eventsContainer.style.display = 'block'; displayEvents(); }
+    };
+
+    function renderCalendar() {
+      const calendarGrid = document.getElementById('calendarGrid');
+      const calendarTitle = document.getElementById('calendarTitle');
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      calendarTitle.textContent = `${monthNames[month]} ${year}`;
+      calendarGrid.innerHTML = '';
+      const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      dayNames.forEach(day => { const header = document.createElement('div'); header.className = 'calendar-day-header'; header.textContent = day; calendarGrid.appendChild(header); });
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const daysInPrevMonth = new Date(year, month, 0).getDate();
+      const today = new Date(); today.setHours(0,0,0,0);
+      for (let i = firstDay - 1; i >= 0; i--) { const day = document.createElement('div'); day.className = 'calendar-day other-month'; day.innerHTML = `<div class="calendar-day-number">${daysInPrevMonth - i}</div>`; calendarGrid.appendChild(day); }
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div'); dayElement.className = 'calendar-day';
+        const currentDate = new Date(year, month, day); currentDate.setHours(0,0,0,0);
+        if (currentDate.getTime() === today.getTime()) dayElement.classList.add('today');
+        const eventsOnDay = filteredEvents.filter(event => { const eventDate = new Date(event.date); eventDate.setHours(0,0,0,0); return eventDate.getTime() === currentDate.getTime(); });
+        if (eventsOnDay.length > 0) {
+          dayElement.classList.add('has-event');
+          dayElement.innerHTML = `<div class="calendar-day-number">${day}</div><div class="calendar-day-events">${eventsOnDay.length}e</div>`;
+          dayElement.onclick = () => { const dateStr = currentDate.toISOString().split('T')[0]; document.getElementById('fromDate').value = dateStr; document.getElementById('toDate').value = dateStr; applyFilters(); switchViewToGrid(); };
+        } else { dayElement.innerHTML = `<div class="calendar-day-number">${day}</div>`; }
+        calendarGrid.appendChild(dayElement);
+      }
+      const totalCells = calendarGrid.children.length - 7;
+      const remainingCells = 42 - totalCells;
+      for (let day = 1; day <= remainingCells; day++) { const dayElement = document.createElement('div'); dayElement.className = 'calendar-day other-month'; dayElement.innerHTML = `<div class="calendar-day-number">${day}</div>`; calendarGrid.appendChild(dayElement); }
+    }
+
+    function switchViewToGrid() {
+      currentView = 'grid';
+      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.view-btn')[0].classList.add('active');
+      document.getElementById('calendarView').style.display = 'none';
+      document.getElementById('eventsContainer').style.display = 'block';
+    }
+
+    window.previousMonth = function() { currentMonth.setMonth(currentMonth.getMonth() - 1); renderCalendar(); };
+    window.nextMonth = function() { currentMonth.setMonth(currentMonth.getMonth() + 1); renderCalendar(); };
+    window.goBack = function() { window.location.href = "user.html"; };
+
+    function escapeQuotes(str) { if (!str) return ''; return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+    window.addToGoogleCalendar = function(eventName, date, time, location) {
+      if (!date || !time) { alert('Event date or time is not available'); return; }
+      const eventDate = new Date(date + 'T' + time);
+      const startDateTime = eventDate.toISOString().replace(/-|:|\.\d{3}/g, '');
+      const endDate = new Date(eventDate); endDate.setHours(endDate.getHours() + 2);
+      const endDateTime = endDate.toISOString().replace(/-|:|\.\d{3}/g, '');
+      const calendarUrl = new URL('https://calendar.google.com/calendar/render');
+      calendarUrl.searchParams.append('action', 'TEMPLATE');
+      calendarUrl.searchParams.append('text', eventName);
+      calendarUrl.searchParams.append('dates', `${startDateTime}/${endDateTime}`);
+      calendarUrl.searchParams.append('details', `Event at ${location}`);
+      calendarUrl.searchParams.append('location', location);
+      window.open(calendarUrl.toString(), '_blank');
+    };
+</script>
+</body>
+</html>

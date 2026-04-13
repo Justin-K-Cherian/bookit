@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booking Requests - Admin Panel</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: white;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.header h1 {
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: #22c55e;
+}
+
+.admin-info {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #3b82f6;
+}
+
+.admin-info p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.admin-info strong {
+  color: #22c55e;
+}
+
+.back-btn {
+  background: #475569;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 20px;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-btn:hover {
+  background: #64748b;
+  transform: translateX(-5px);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-card .number {
+  font-size: 32px;
+  font-weight: bold;
+  color: #22c55e;
+  margin-bottom: 5px;
+}
+
+.stat-card .label {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.filters {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filters label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.filters select {
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #1e293b;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.requests-list {
+  display: grid;
+  gap: 15px;
+}
+
+.request-card {
+  background: #1e293b;
+  padding: 25px;
+  border-radius: 12px;
+  border-left: 5px solid #22c55e;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.request-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.request-card.multi-slot {
+  border-left-color: #f59e0b;
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.venue-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.booking-id {
+  font-size: 12px;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.multi-slot-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+/* ── USER PROFILE SECTION ─────────────────────────────────── */
+.user-profile-section {
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.20);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-profile-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: linear-gradient(180deg, #3b82f6, #6366f1);
+  border-radius: 4px 0 0 4px;
+}
+
+.user-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #1e3a5f;
+  border: 2px solid #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-primary {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-full-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email-sub {
+  font-size: 12px;
+  color: #60a5fa;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-section-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #60a5fa;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(59, 130, 246, 0.25);
+}
+
+.user-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.user-meta-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.meta-icon {
+  font-size: 14px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+.meta-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #475569;
+  margin-bottom: 2px;
+}
+
+.meta-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.meta-value.na {
+  color: #475569;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* profile loading skeleton */
+.profile-skeleton {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.skel-circle {
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  animation: shimmer 1.4s infinite;
+  flex-shrink: 0;
+}
+
+.skel-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+.skel-line {
+  height: 12px; border-radius: 4px;
+  background: rgba(255,255,255,0.07);
+  animation: shimmer 1.4s infinite;
+}
+
+.skel-line.short { width: 55%; }
+.skel-line.long  { width: 80%; }
+
+@keyframes shimmer {
+  0%   { opacity: 0.5; }
+  50%  { opacity: 1;   }
+  100% { opacity: 0.5; }
+}
+
+/* ── SLOTS ────────────────────────────────────────────────── */
+.slots-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.slot-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── BOOKING DETAILS GRID ─────────────────────────────────── */
+.request-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-icon {
+  font-size: 18px;
+  width: 30px;
+  text-align: center;
+}
+
+.detail-content { flex: 1; }
+
+.detail-label {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  margin-top: 2px;
+}
+
+/* ── PURPOSE ─────────────────────────────────────────────── */
+.purpose-section {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.purpose-section .label {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.purpose-section .value {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+/* ── ACTIONS ─────────────────────────────────────────────── */
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.group-divider {
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  margin-top: 4px;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-sm {
+  padding: 7px 14px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-approve {
+  background: #22c55e;
+  color: white;
+}
+
+.btn-approve:hover:not(:disabled) {
+  background: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+.btn-reject {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-reject:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.btn-approve-all {
+  background: #22c55e;
+  color: white;
+}
+.btn-approve-all:hover:not(:disabled) {
+  background: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34,197,94,0.4);
+}
+
+.btn-reject-all {
+  background: #ef4444;
+  color: white;
+}
+.btn-reject-all:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239,68,68,0.4);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+}
+
+.empty-state .icon { font-size: 64px; margin-bottom: 20px; opacity: 0.5; }
+.empty-state h3    { font-size: 20px; color: #94a3b8; margin-bottom: 10px; }
+.empty-state p     { color: #64748b; font-size: 14px; }
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #94a3b8;
+}
+
+.error-message {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.success-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #22c55e;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.error-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #ef4444;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(400px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+.btn-loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.btn-loading::after {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-left: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+  .request-details  { grid-template-columns: 1fr; }
+  .user-meta-grid   { grid-template-columns: 1fr 1fr; }
+  .actions          { flex-direction: column; }
+  .btn              { width: 100%; justify-content: center; }
+  .filters          { flex-direction: column; align-items: stretch; }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  emailjs.init("_GFnq4BiB8cVkkKF5");
+</script>
+
+</head>
+
+<body>
+<div class="container">
+  <button class="back-btn" onclick="location.href='admin.html'">
+    ← Back to Admin Dashboard
+  </button>
+
+  <div class="header">
+    <h1>📋 Booking Requests Management</h1>
+  </div>
+
+  <div class="admin-info" id="adminInfo">
+    <p>👤 <strong>Admin:</strong> <span id="adminEmail">Loading...</span></p>
+    <p>📍 <strong>Your Venue:</strong> <span id="adminVenue">Loading...</span></p>
+    <p>🔑 <strong>Venue Slug:</strong> <span id="venueSlug">Loading...</span></p>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="number" id="pendingCount">0</div>
+      <div class="label">Pending Requests</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" id="todayCount">0</div>
+      <div class="label">Today's Requests</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <label for="sortFilter">Sort by:</label>
+    <select id="sortFilter">
+      <option value="date-asc">Date (Earliest First)</option>
+      <option value="date-desc">Date (Latest First)</option>
+      <option value="created-desc">Recently Submitted</option>
+      <option value="created-asc">Oldest Submitted</option>
+    </select>
+  </div>
+
+  <div class="requests-list" id="requestsList">
+    <div class="loading">Loading requests...</div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection, query, where, getDocs, onSnapshot,
+  updateDoc, doc, serverTimestamp, getDoc, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let adminVenueSlug = null;
+let allRequests    = [];
+let currentSort    = 'date-asc';
+
+// ── Profile cache: email → profile data ──────────────────────────────────────
+const profileCache = new Map();
+
+const requestsList = document.getElementById('requestsList');
+const adminEmailEl = document.getElementById('adminEmail');
+const adminVenueEl = document.getElementById('adminVenue');
+const venueSlugEl  = document.getElementById('venueSlug');
+const pendingCount = document.getElementById('pendingCount');
+const todayCount   = document.getElementById('todayCount');
+const sortFilter   = document.getElementById('sortFilter');
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function isExpired(dateStr) {
+  if (!dateStr) return false;
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const booking = new Date(dateStr); booking.setHours(0,0,0,0);
+  return booking < today;
+}
+
+function formatVenueName(slug) {
+  if (!slug) return 'Unknown Venue';
+  return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+function formatSlot(slot) {
+  if (!slot) return slot;
+  const [start, end] = slot.split('-');
+  const fmt = t => {
+    const [h, m] = t.trim().split(':').map(Number);
+    return `${h % 12 || 12}:${String(m).padStart(2,'0')}${h >= 12 ? 'PM' : 'AM'}`;
+  };
+  return `${fmt(start)} – ${fmt(end)}`;
+}
+
+// ── Fetch user profile from myprofile collection (keyed by email) ─────────────
+// Queries myprofile where email == bookingEmail, falls back to users collection
+async function fetchUserProfile(email) {
+  if (!email) return null;
+  if (profileCache.has(email)) return profileCache.get(email);
+
+  try {
+    // Primary: myprofile collection (rich data) — query by email field
+    const profileQ    = query(collection(db, 'myprofile'), where('email', '==', email));
+    const profileSnap = await getDocs(profileQ);
+    if (!profileSnap.empty) {
+      const data = profileSnap.docs[0].data();
+      profileCache.set(email, data);
+      return data;
+    }
+    // Fallback: users collection — query by email field
+    const usersQ    = query(collection(db, 'users'), where('email', '==', email));
+    const usersSnap = await getDocs(usersQ);
+    if (!usersSnap.empty) {
+      const data = usersSnap.docs[0].data();
+      profileCache.set(email, data);
+      return data;
+    }
+  } catch (err) {
+    console.warn('Could not fetch profile for', email, err);
+  }
+  profileCache.set(email, null);
+  return null;
+}
+
+// ── Build the user profile HTML block ─────────────────────────────────────────
+function buildProfileHTML(profile, bookingEmail) {
+  if (!profile) {
+    // No profile found — show minimal info from the booking itself
+    return `
+      <div class="user-profile-section">
+        <div class="profile-section-label">Requester Details</div>
+        <div class="user-profile-header">
+          <div class="user-avatar">👤</div>
+          <div class="user-primary">
+            <div class="user-full-name">—</div>
+            <div class="user-email-sub">${bookingEmail || 'N/A'}</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#475569;font-style:italic;">Profile data not available</div>
+      </div>`;
+  }
+
+  const name       = profile.name        || '—';
+  const email      = profile.email       || bookingEmail || '—';
+  const dept       = profile.dept        || '—';
+  const regno      = profile.regno       || '—';
+  const phone      = profile.phone       || '—';
+  const gender     = profile.gender      || '—';
+  const admission  = profile.admission   || '—';
+  const role       = profile.role        || '—';
+
+  const avatarHTML = profile.photoBase64
+    ? `<img src="${profile.photoBase64}" alt="${name}">`
+    : '👤';
+
+  return `
+    <div class="user-profile-section">
+      <div class="profile-section-label">Requester Details</div>
+      <div class="user-profile-header">
+        <div class="user-avatar">${avatarHTML}</div>
+        <div class="user-primary">
+          <div class="user-full-name">${name}</div>
+          <div class="user-email-sub">${email}</div>
+        </div>
+      </div>
+      <div class="user-meta-grid">
+        <div class="user-meta-item">
+          <div class="meta-icon">🎓</div>
+          <div class="meta-content">
+            <div class="meta-label">Department</div>
+            <div class="meta-value ${dept === '—' ? 'na' : ''}">${dept}</div>
+          </div>
+        </div>
+        <div class="user-meta-item">
+          <div class="meta-icon">🪪</div>
+          <div class="meta-content">
+            <div class="meta-label">Reg. Number</div>
+            <div class="meta-value ${regno === '—' ? 'na' : ''}">${regno}</div>
+          </div>
+        </div>
+        <div class="user-meta-item">
+          <div class="meta-icon">📞</div>
+          <div class="meta-content">
+            <div class="meta-label">Phone</div>
+            <div class="meta-value ${phone === '—' ? 'na' : ''}">${phone}</div>
+          </div>
+        </div>
+        <div class="user-meta-item">
+          <div class="meta-icon">🔖</div>
+          <div class="meta-content">
+            <div class="meta-label">Admission No.</div>
+            <div class="meta-value ${admission === '—' ? 'na' : ''}">${admission}</div>
+          </div>
+        </div>
+        <div class="user-meta-item">
+          <div class="meta-icon">⚧️</div>
+          <div class="meta-content">
+            <div class="meta-label">Gender</div>
+            <div class="meta-value ${gender === '—' ? 'na' : ''}">${gender}</div>
+          </div>
+        </div>
+        <div class="user-meta-item">
+          <div class="meta-icon">👥</div>
+          <div class="meta-content">
+            <div class="meta-label">Role</div>
+            <div class="meta-value ${role === '—' ? 'na' : ''}">${role}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Group flat docs into logical requests ─────────────────────────────────────
+function groupRequests(docs) {
+  const groups  = new Map();
+  const singles = [];
+
+  docs.forEach(r => {
+    if (r.groupId) {
+      if (!groups.has(r.groupId)) groups.set(r.groupId, { meta: r, slots: [] });
+      groups.get(r.groupId).slots.push(r);
+    } else {
+      singles.push({ meta: r, slots: [r], groupId: null });
+    }
+  });
+
+  groups.forEach(g => {
+    g.slots.sort((a, b) => a.time.localeCompare(b.time));
+    g.groupId = g.meta.groupId;
+  });
+
+  return [...Array.from(groups.values()), ...singles];
+}
+
+// ── Auto-reject expired bookings ──────────────────────────────────────────────
+async function autoRejectExpiredBookings(docs) {
+  const batch = writeBatch(db);
+  let count = 0;
+  docs.forEach(r => {
+    if (isExpired(r.date)) {
+      batch.update(doc(db, 'bookings', r.id), {
+        status: 'rejected',
+        rejectedBy: 'system',
+        rejectedAt: serverTimestamp(),
+        rejectionReason: 'Booking date has passed'
+      });
+      count++;
+    }
+  });
+  if (count > 0) await batch.commit();
+}
+
+// ── EmailJS ───────────────────────────────────────────────────────────────────
+async function sendBookingEmail(toEmail, status, details, reason = '') {
+  try {
+    await emailjs.send('service_76fxda9', 'template_zry4nto', {
+      to_email:     toEmail,
+      venue_name:   formatVenueName(details.venueSlug),
+      booking_date: details.date,
+      booking_time: details.time,
+      status:       status === 'approved' ? '✅ Approved' : '❌ Rejected',
+      reason:       status === 'approved' ? 'We look forward to seeing you!' : `Reason: ${reason}`,
+    });
+  } catch (err) {
+    console.warn('⚠️ Email failed:', err);
+  }
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location.href = 'index.html'; return; }
+  try {
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (!userDoc.exists()) { showError('User data not found'); return; }
+    const data = userDoc.data();
+    if (data.role !== 'admin') {
+      showError('Access denied - Admin only');
+      setTimeout(() => window.location.href = 'index.html', 2000);
+      return;
+    }
+    if (!data.venueSlug) { showError('No venue assigned to this admin'); return; }
+    adminVenueSlug = data.venueSlug;
+    adminEmailEl.textContent = user.email;
+    adminVenueEl.textContent = formatVenueName(data.venueSlug);
+    venueSlugEl.textContent  = data.venueSlug;
+    loadRequests();
+  } catch (e) { showError('Error loading admin data: ' + e.message); }
+});
+
+// ── Load + stream requests ────────────────────────────────────────────────────
+function loadRequests() {
+  if (!adminVenueSlug) {
+    requestsList.innerHTML = '<div class="error-message">Admin venue not configured</div>';
+    return;
+  }
+  requestsList.innerHTML = '<div class="loading">Loading your venue requests...</div>';
+
+  const q = query(
+    collection(db, 'bookings'),
+    where('status',    '==', 'pending'),
+    where('venueSlug', '==', adminVenueSlug)
+  );
+
+  onSnapshot(q, async snap => {
+    allRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    await autoRejectExpiredBookings(allRequests);
+    allRequests = allRequests.filter(r => !isExpired(r.date));
+    updateStats();
+    await displayRequests();   // now async
+  }, err => showError('Error loading requests: ' + err.message));
+}
+
+function updateStats() {
+  const groups = groupRequests(allRequests);
+  pendingCount.textContent = groups.length;
+  const today = new Date().toISOString().split('T')[0];
+  todayCount.textContent   = groups.filter(g => g.meta.date === today).length;
+}
+
+// ── Display ───────────────────────────────────────────────────────────────────
+async function displayRequests() {
+  if (allRequests.length === 0) {
+    requestsList.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📭</div>
+        <h3>No Pending Requests</h3>
+        <p>There are no pending booking requests for ${formatVenueName(adminVenueSlug)}</p>
+      </div>`;
+    return;
+  }
+
+  let groups = groupRequests(allRequests);
+  groups = sortGroups(groups, currentSort);
+
+  // Pre-fetch all unique user profiles in parallel
+  const uniqueEmails = [...new Set(groups.map(g => g.meta.email).filter(Boolean))];
+  await Promise.all(uniqueEmails.map(email => fetchUserProfile(email)));
+
+  requestsList.innerHTML = '';
+  groups.forEach(g => {
+    const profile = profileCache.get(g.meta.email) ?? null;
+    requestsList.appendChild(createGroupCard(g, profile));
+  });
+}
+
+// ── Card builder ──────────────────────────────────────────────────────────────
+function createGroupCard(group, profile) {
+  const { meta, slots } = group;
+  const isMulti  = slots.length > 1;
+  const card     = document.createElement('div');
+  card.className = 'request-card' + (isMulti ? ' multi-slot' : '');
+
+  const createdAt = meta.createdAt?.toDate
+    ? meta.createdAt.toDate().toLocaleString()
+    : 'N/A';
+
+  const displayId = isMulti
+    ? (meta.groupId ? meta.groupId.substring(0, 8) : meta.id.substring(0, 8))
+    : meta.id.substring(0, 8);
+
+  // Slot pills (multi only)
+  let slotHTML = '';
+  if (isMulti) {
+    const pills = slots.map(s =>
+      `<span class="slot-pill">🕒 ${formatSlot(s.time)}</span>`
+    ).join('');
+    slotHTML = `
+      <div class="group-divider">${slots.length} Slots Requested</div>
+      <div class="slots-list">${pills}</div>`;
+  }
+
+  // Actions
+  let actionsHTML = '';
+  if (isMulti) {
+    const idsJson   = JSON.stringify(slots.map(s => s.id));
+    const timesJson = JSON.stringify(slots.map(s => s.time));
+    actionsHTML = `
+      <div class="group-divider" style="margin-top:8px;">Actions</div>
+      <div class="actions">
+        <button class="btn btn-approve-all"
+          onclick='handleApproveAll(${JSON.stringify(idsJson)}, ${JSON.stringify(meta.date)}, ${JSON.stringify(timesJson)}, ${JSON.stringify(meta.venueSlug || adminVenueSlug)}, ${JSON.stringify(meta.email)}, ${JSON.stringify(meta.groupId)})'>
+          ✅ Approve All Slots
+        </button>
+        <button class="btn btn-reject-all"
+          onclick='handleRejectAll(${JSON.stringify(idsJson)}, ${JSON.stringify(meta.email)}, ${JSON.stringify(meta.date)}, ${JSON.stringify(timesJson)}, ${JSON.stringify(meta.venueSlug || adminVenueSlug)})'>
+          ❌ Reject All Slots
+        </button>
+      </div>`;
+  } else {
+    const s = slots[0];
+    actionsHTML = `
+      <div class="actions">
+        <button class="btn btn-approve" id="approve-${s.id}"
+          onclick="handleApprove('${s.id}','${s.date}','${s.time}','${s.venueSlug || adminVenueSlug}')">
+          ✅ Approve Request
+        </button>
+        <button class="btn btn-reject" id="reject-${s.id}"
+          onclick="handleReject('${s.id}')">
+          ❌ Reject Request
+        </button>
+      </div>`;
+  }
+
+  card.innerHTML = `
+    <div class="request-header">
+      <div class="venue-name">
+        📍 ${formatVenueName(meta.venueSlug || adminVenueSlug)}
+        ${isMulti ? `<span class="multi-slot-badge">📅 ${slots.length} slots</span>` : ''}
+      </div>
+      <div class="booking-id">ID: ${displayId}</div>
+    </div>
+
+    ${buildProfileHTML(profile, meta.email)}
+
+    <div class="request-details">
+      <div class="detail-item">
+        <div class="detail-icon">📅</div>
+        <div class="detail-content">
+          <div class="detail-label">Booking Date</div>
+          <div class="detail-value">${meta.date || 'N/A'}</div>
+        </div>
+      </div>
+      ${!isMulti ? `
+      <div class="detail-item">
+        <div class="detail-icon">🕒</div>
+        <div class="detail-content">
+          <div class="detail-label">Time Slot</div>
+          <div class="detail-value">${formatSlot(meta.time) || 'N/A'}</div>
+        </div>
+      </div>` : ''}
+      <div class="detail-item">
+        <div class="detail-icon">📝</div>
+        <div class="detail-content">
+          <div class="detail-label">Submitted</div>
+          <div class="detail-value">${createdAt}</div>
+        </div>
+      </div>
+    </div>
+
+    ${slotHTML}
+
+    <div class="purpose-section">
+      <span class="label">Purpose of Booking</span>
+      <div class="value">${meta.purpose || 'No purpose specified'}</div>
+    </div>
+
+    ${actionsHTML}
+  `;
+
+  return card;
+}
+
+// ── Single-slot approve ───────────────────────────────────────────────────────
+window.handleApprove = async (bookingId, bookingDate, bookingTime, bookingVenueSlug) => {
+  if (isExpired(bookingDate)) { showError('Cannot approve an expired booking.'); return; }
+  if (!confirm('Approve this booking?\n\nConflicting pending requests for this slot will be auto-rejected.')) return;
+
+  setButtons(bookingId, true, 'Processing...');
+  try {
+    const conflictQ = query(
+      collection(db, 'bookings'),
+      where('venueSlug', '==', bookingVenueSlug),
+      where('date',      '==', bookingDate),
+      where('time',      '==', bookingTime),
+      where('status',    '==', 'pending')
+    );
+    const snap  = await getDocs(conflictQ);
+    const batch = writeBatch(db);
+    let rejected = 0;
+
+    snap.forEach(d => {
+      const ref = doc(db, 'bookings', d.id);
+      if (d.id === bookingId) {
+        batch.update(ref, { status: 'approved', approvedBy: auth.currentUser.email, approvedAt: serverTimestamp() });
+      } else {
+        batch.update(ref, { status: 'rejected', rejectedBy: auth.currentUser.email, rejectedAt: serverTimestamp(), rejectionReason: 'Another booking was approved for this time slot' });
+        rejected++;
+      }
+    });
+    await batch.commit();
+
+    const approvedDoc = snap.docs.find(d => d.id === bookingId);
+    if (approvedDoc) {
+      const d = approvedDoc.data();
+      await sendBookingEmail(d.email, 'approved', { venueSlug: d.venueSlug || adminVenueSlug, date: d.date, time: formatSlot(d.time) });
+    }
+    for (const d of snap.docs) {
+      if (d.id !== bookingId) {
+        const data = d.data();
+        await sendBookingEmail(data.email, 'rejected', { venueSlug: data.venueSlug || adminVenueSlug, date: data.date, time: formatSlot(data.time) }, 'Another booking was approved for this time slot');
+      }
+    }
+
+    showSuccess(rejected > 0 ? `✅ Approved! ${rejected} conflict(s) auto-rejected.` : '✅ Booking approved!');
+  } catch (e) {
+    showError('Error approving: ' + e.message);
+    setButtons(bookingId, false);
+  }
+};
+
+// ── Single-slot reject ────────────────────────────────────────────────────────
+window.handleReject = async (bookingId) => {
+  const reason = prompt('Reason for rejection (optional):');
+  if (reason === null) return;
+
+  setButtons(bookingId, true, null, 'Rejecting...');
+  try {
+    await updateDoc(doc(db, 'bookings', bookingId), {
+      status: 'rejected', rejectedBy: auth.currentUser.email,
+      rejectedAt: serverTimestamp(), rejectionReason: reason || 'No reason provided'
+    });
+    const snap = await getDoc(doc(db, 'bookings', bookingId));
+    if (snap.exists()) {
+      const d = snap.data();
+      await sendBookingEmail(d.email, 'rejected', { venueSlug: d.venueSlug || adminVenueSlug, date: d.date, time: formatSlot(d.time) }, reason || 'No reason provided');
+    }
+    showSuccess('❌ Booking rejected.');
+  } catch (e) {
+    showError('Error rejecting: ' + e.message);
+    setButtons(bookingId, false);
+  }
+};
+
+// ── Multi-slot: Approve ALL ───────────────────────────────────────────────────
+window.handleApproveAll = async (idsJson, bookingDate, timesJson, bookingVenueSlug, userEmail, groupId) => {
+  const ids   = JSON.parse(idsJson);
+  const times = JSON.parse(timesJson);
+
+  if (isExpired(bookingDate)) { showError('Cannot approve an expired booking.'); return; }
+  if (!confirm(`Approve all ${ids.length} slots for this request?\n\nConflicting pending requests for these slots will be auto-rejected.`)) return;
+
+  try {
+    const batch = writeBatch(db);
+    let totalRejected = 0;
+
+    for (const time of times) {
+      const conflictQ = query(
+        collection(db, 'bookings'),
+        where('venueSlug', '==', bookingVenueSlug),
+        where('date',      '==', bookingDate),
+        where('time',      '==', time),
+        where('status',    '==', 'pending')
+      );
+      const snap = await getDocs(conflictQ);
+      snap.forEach(d => {
+        const ref = doc(db, 'bookings', d.id);
+        if (ids.includes(d.id)) {
+          batch.update(ref, { status: 'approved', approvedBy: auth.currentUser.email, approvedAt: serverTimestamp() });
+        } else {
+          batch.update(ref, { status: 'rejected', rejectedBy: auth.currentUser.email, rejectedAt: serverTimestamp(), rejectionReason: 'Another booking was approved for this time slot' });
+          totalRejected++;
+        }
+      });
+    }
+    await batch.commit();
+
+    await sendBookingEmail(userEmail, 'approved', {
+      venueSlug: bookingVenueSlug,
+      date: bookingDate,
+      time: times.map(formatSlot).join(', ')
+    });
+
+    showSuccess(`✅ All ${ids.length} slots approved!${totalRejected ? ` ${totalRejected} conflict(s) auto-rejected.` : ''}`);
+  } catch (e) {
+    showError('Error approving all slots: ' + e.message);
+  }
+};
+
+// ── Multi-slot: Reject ALL ────────────────────────────────────────────────────
+window.handleRejectAll = async (idsJson, userEmail, bookingDate, timesJson, bookingVenueSlug) => {
+  const ids   = JSON.parse(idsJson);
+  const times = JSON.parse(timesJson);
+
+  const reason = prompt(`Reject all ${ids.length} slots? Provide a reason (optional):`);
+  if (reason === null) return;
+
+  try {
+    const batch = writeBatch(db);
+    ids.forEach(id => {
+      batch.update(doc(db, 'bookings', id), {
+        status: 'rejected', rejectedBy: auth.currentUser.email,
+        rejectedAt: serverTimestamp(), rejectionReason: reason || 'No reason provided'
+      });
+    });
+    await batch.commit();
+
+    await sendBookingEmail(userEmail, 'rejected', {
+      venueSlug: bookingVenueSlug,
+      date: bookingDate,
+      time: times.map(formatSlot).join(', ')
+    }, reason || 'No reason provided');
+
+    showSuccess(`❌ All ${ids.length} slots rejected.`);
+  } catch (e) {
+    showError('Error rejecting all slots: ' + e.message);
+  }
+};
+
+// ── Sort groups ───────────────────────────────────────────────────────────────
+function sortGroups(groups, sortType) {
+  return [...groups].sort((a, b) => {
+    switch (sortType) {
+      case 'date-asc':  return new Date(a.meta.date) - new Date(b.meta.date);
+      case 'date-desc': return new Date(b.meta.date) - new Date(a.meta.date);
+      case 'created-asc': {
+        const ta = a.meta.createdAt?.toDate?.() || new Date(0);
+        const tb = b.meta.createdAt?.toDate?.() || new Date(0);
+        return ta - tb;
+      }
+      case 'created-desc': {
+        const ta = a.meta.createdAt?.toDate?.() || new Date(0);
+        const tb = b.meta.createdAt?.toDate?.() || new Date(0);
+        return tb - ta;
+      }
+      default: return 0;
+    }
+  });
+}
+
+sortFilter.addEventListener('change', e => {
+  currentSort = e.target.value;
+  displayRequests();
+});
+
+// ── Button helpers ────────────────────────────────────────────────────────────
+function setButtons(id, disabled, approveText = null, rejectText = null) {
+  const a = document.getElementById(`approve-${id}`);
+  const r = document.getElementById(`reject-${id}`);
+  if (!a || !r) return;
+  a.disabled = disabled; r.disabled = disabled;
+  if (approveText) { a.classList.add('btn-loading'); a.textContent = approveText; }
+  else { a.classList.remove('btn-loading'); a.innerHTML = '✅ Approve Request'; }
+  if (rejectText)  { r.classList.add('btn-loading'); r.textContent = rejectText; }
+  else { r.classList.remove('btn-loading'); r.innerHTML = '❌ Reject Request'; }
+}
+
+function showSuccess(msg) {
+  const t = document.createElement('div');
+  t.className = 'success-toast';
+  t.innerHTML = `<span>✅</span><span>${msg}</span>`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+function showError(msg) {
+  const t = document.createElement('div');
+  t.className = 'error-toast';
+  t.innerHTML = `<span>❌</span><span>${msg}</span>`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+</script>
+</body>
+</html>

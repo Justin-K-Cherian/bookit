@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Venue Bookings - BookIt</title>
+
+<!-- Firebase Init -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyDYD768C9UY7PHq8BrQLN8paau3LmXAnFs",
+  authDomain: "bookit-56e35.firebaseapp.com",
+  projectId: "bookit-56e35",
+  storageBucket: "bookit-56e35.appspot.com",
+  messagingSenderId: "813441391899",
+  appId: "1:813441391899:web:d5bf9d33c6b81c983a87be"
+};
+const app = initializeApp(firebaseConfig);
+window.auth = getAuth(app);
+window.db = getFirestore(app);
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --g900:#052e16; --g800:#064e3b; --g700:#065f46; --g600:#047857;
+  --g500:#059669; --g400:#10b981; --g300:#34d399; --g200:#6ee7b7;
+  --g100:#a7f3d0; --g50:#d1fae5;  --g25:#ecfdf5;  --g10:#f0fdf4;
+  --w:#ffffff;
+  --s900:#0f172a; --s800:#1e293b; --s700:#334155; --s600:#475569;
+  --s500:#64748b; --s400:#94a3b8; --s300:#cbd5e1; --s200:#e2e8f0;
+  --s100:#f1f5f9; --s50:#f8fafc;
+  --r500:#ef4444; --r100:#fee2e2; --r50:#fef2f2;
+  --amber:#d97706; --amber-l:#fef3c7;
+  --fd:'DM Serif Display',serif;
+  --fb:'DM Sans',sans-serif;
+  --shadow-sm:0 1px 3px rgba(6,78,59,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(6,78,59,.10),0 2px 6px rgba(0,0,0,.04);
+  --shadow-lg:0 12px 36px rgba(6,78,59,.14),0 4px 12px rgba(0,0,0,.06);
+  --shadow-xl:0 24px 56px rgba(6,78,59,.18),0 8px 20px rgba(0,0,0,.08);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--g10);color:var(--s800);min-height:100vh;line-height:1.6}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--w);border-bottom:1px solid var(--g50);padding:0 40px;height:68px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 0 var(--g50),var(--shadow-sm)}
+.tl{display:flex;align-items:center;gap:16px;animation:slideRight .5s ease both}
+.bico{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--g400),var(--g700));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 8px rgba(5,150,105,.35)}
+.brand-group{display:flex;flex-direction:column}
+.bn{font-family:var(--fd);font-size:19px;color:var(--g900);line-height:1.1}
+.bsub{font-size:10.5px;font-weight:600;color:var(--g500);letter-spacing:.1em;text-transform:uppercase}
+.topbar-divider{width:1px;height:28px;background:var(--g50)}
+.portal-pill{background:var(--g25);border:1.5px solid var(--g100);color:var(--g700);font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;letter-spacing:.04em}
+.tr{display:flex;align-items:center;gap:12px;animation:slideLeft .5s ease both}
+.up{display:flex;align-items:center;gap:10px;background:var(--g10);border:1.5px solid var(--g50);border-radius:32px;padding:5px 14px 5px 5px;transition:border-color .18s,background .18s;cursor:default}
+.up:hover{border-color:var(--g200);background:var(--g25)}
+.ua{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--g400),var(--g700));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white;flex-shrink:0}
+.ue{font-size:13.5px;font-weight:600;color:var(--s700);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ur{font-size:11px;font-weight:500;color:var(--g600)}
+.lob{display:flex;align-items:center;gap:7px;background:var(--w);border:1.5px solid var(--s200);color:var(--s600);padding:8px 16px;border-radius:8px;font-family:var(--fb);font-size:13.5px;font-weight:600;cursor:pointer;transition:all .18s}
+.lob:hover{background:var(--r50);border-color:var(--r100);color:var(--r500)}
+
+/* ── LAYOUT ── */
+.container{max-width:1100px;margin:0 auto;padding:40px 32px 80px}
+
+/* ── PAGE HEADER BANNER ── */
+.page-header{background:var(--g900);border-radius:16px;padding:32px 36px;margin-bottom:28px;position:relative;overflow:hidden;box-shadow:var(--shadow-xl);animation:fadeUp .4s ease both}
+.page-header::before{content:'';position:absolute;right:-50px;top:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(52,211,153,.14),transparent 70%)}
+.page-header-inner{position:relative;z-index:1;display:flex;align-items:center;gap:18px}
+.ph-icon{font-size:44px;filter:drop-shadow(0 4px 12px rgba(52,211,153,.3));animation:float 4s ease-in-out infinite}
+.page-header h1{font-family:var(--fd);font-size:28px;color:white;margin-bottom:4px;line-height:1.2}
+.page-header p{font-size:14px;color:rgba(255,255,255,.65);font-weight:400}
+.page-header-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g300);margin-bottom:10px;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.2);padding:3px 10px;border-radius:20px}
+
+/* ── FILTER BOX ── */
+.filter-box{background:var(--w);border:1.5px solid var(--g50);border-radius:12px;padding:20px 22px;margin-bottom:24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:var(--shadow-sm);animation:fadeUp .4s .05s ease both}
+.filter-box label{font-size:13px;font-weight:700;color:var(--g600)}
+.filter-box input[type="date"]{padding:9px 14px;border-radius:8px;border:1.5px solid var(--g50);background:var(--g25);color:var(--s800);font-family:var(--fb);font-size:14px;font-weight:500;outline:none;transition:border-color .18s}
+.filter-box input[type="date"]:focus{border-color:var(--g400);background:var(--w);box-shadow:0 0 0 3px rgba(16,185,129,.10)}
+.filter-box span{font-size:13px;font-weight:600;color:var(--s500)}
+
+/* ── FILTER BUTTONS ── */
+.filter-btn{padding:9px 18px;border:none;border-radius:8px;font-family:var(--fb);font-size:14px;font-weight:600;cursor:pointer;transition:all .18s}
+.apply-btn{background:linear-gradient(135deg,var(--g400),var(--g700));color:white;box-shadow:0 3px 10px rgba(6,78,59,.2)}
+.apply-btn:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(6,78,59,.3)}
+.clear-btn{background:var(--w);border:1.5px solid var(--s200);color:var(--s600)}
+.clear-btn:hover{background:var(--s100);border-color:var(--s300)}
+
+/* ── TABS ── */
+.tabs{display:flex;justify-content:flex-start;gap:8px;margin-bottom:24px;background:var(--w);border:1.5px solid var(--g50);border-radius:12px;padding:8px;box-shadow:var(--shadow-sm);animation:fadeUp .4s .08s ease both;width:fit-content}
+.tab{padding:10px 24px;border:none;background:transparent;color:var(--s500);font-family:var(--fb);font-size:14px;font-weight:600;border-radius:8px;cursor:pointer;transition:all .2s}
+.tab:hover:not(.active){background:var(--g25);color:var(--g600)}
+.tab.active{background:linear-gradient(135deg,var(--g400),var(--g700));color:white;box-shadow:0 3px 10px rgba(6,78,59,.25)}
+
+/* ── BOOKING CARDS ── */
+.bookings-container{display:grid;gap:16px}
+.booking-card{background:var(--w);border:1.5px solid var(--g50);border-left:5px solid var(--g400);border-radius:14px;padding:24px;box-shadow:var(--shadow-sm);display:flex;justify-content:space-between;align-items:center;transition:all .2s;animation:fadeUp .4s ease both}
+.booking-card:hover{transform:translateX(4px);box-shadow:var(--shadow-md);border-color:var(--g100)}
+.booking-info{flex:1}
+.booking-info p{margin:6px 0;color:var(--s700);font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.booking-info strong{color:var(--g700);font-weight:700}
+.booking-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;margin-left:8px}
+.badge-ongoing{background:var(--amber-l);color:var(--amber)}
+.badge-upcoming{background:var(--g25);color:var(--g600)}
+.badge-completed{background:var(--s100);color:var(--s500)}
+
+/* ── CANCEL BTN ── */
+.cancel-btn{background:var(--r50);border:1.5px solid var(--r100);color:var(--r500);padding:9px 18px;border-radius:8px;font-family:var(--fb);font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;flex-shrink:0;margin-left:16px}
+.cancel-btn:hover{background:var(--r500);color:white;border-color:var(--r500);transform:translateY(-2px)}
+
+/* ── BACK BTN ── */
+.back-btn{display:inline-flex;align-items:center;gap:8px;background:var(--w);border:1.5px solid var(--g100);color:var(--g700);padding:9px 18px;border-radius:9px;font-family:var(--fb);font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;margin-top:28px;box-shadow:var(--shadow-sm)}
+.back-btn:hover{border-color:var(--g400);background:var(--g25);transform:translateX(-3px)}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:60px 20px;background:var(--w);border:2px dashed var(--g100);border-radius:14px}
+.empty-state h3{font-family:var(--fd);font-size:20px;color:var(--g700);margin-bottom:8px}
+.empty-state p{color:var(--s500);font-size:14px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--g800);color:white;padding:14px 22px;border-radius:10px;box-shadow:var(--shadow-lg);display:none;z-index:1000;font-weight:600;font-size:14px;border-left:4px solid var(--g300)}
+.toast.error{background:var(--r500);border-left-color:#fca5a5}
+
+/* ── LOADING ── */
+.loading-overlay{position:fixed;inset:0;background:rgba(5,46,22,.35);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999}
+.loading-spinner{width:52px;height:52px;border:4px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:white;animation:spin .8s linear infinite}
+
+.hidden{display:none!important}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@keyframes slideLeft{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--g10)}
+::-webkit-scrollbar-thumb{background:var(--g100);border-radius:4px}
+
+@media(max-width:768px){
+  .topbar{padding:0 18px}.ue{max-width:100px}
+  .container{padding:24px 16px 60px}
+  .booking-card{flex-direction:column;align-items:flex-start;gap:14px}
+  .cancel-btn{margin-left:0;width:100%}
+  .tabs{width:100%;overflow-x:auto}
+  .filter-box{flex-direction:column;align-items:stretch}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tl">
+    <div class="bico">📅</div>
+    <div class="brand-group">
+      <div class="bn">BookIt</div>
+      <div class="bsub">Venue Management</div>
+    </div>
+    <div class="topbar-divider"></div>
+    <span class="portal-pill">📅 Bookings Manager</span>
+  </div>
+  <div class="tr">
+    <div class="up">
+      <div class="ua">A</div>
+      <div>
+        <div class="ue" id="adminEmail">Loading…</div>
+        <div class="ur" id="adminRole">Venue Admin</div>
+      </div>
+    </div>
+    <button class="lob" onclick="logoutNow()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </button>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="ph-icon">📅</div>
+      <div>
+        <div class="page-header-eyebrow">✦ Venue Admin</div>
+        <h1>Venue Bookings</h1>
+        <p id="venueSubtitle">Manage your venue bookings</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATE FILTER -->
+  <div class="filter-box">
+    <label>📅 Filter by Date:</label>
+    <input type="date" id="fromDate">
+    <span>to</span>
+    <input type="date" id="toDate">
+    <button class="filter-btn apply-btn" onclick="applyDateFilter()">Apply Filter</button>
+    <button class="filter-btn clear-btn" onclick="clearFilter()">Clear</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('ongoing', event)">⏳ Ongoing</button>
+    <button class="tab" onclick="switchTab('upcoming', event)">📅 Upcoming</button>
+    <button class="tab" onclick="switchTab('completed', event)">✅ Completed</button>
+  </div>
+
+  <!-- BOOKING LISTS -->
+  <div id="ongoingContainer" class="bookings-container"></div>
+  <div id="upcomingContainer" class="bookings-container hidden"></div>
+  <div id="completedContainer" class="bookings-container hidden"></div>
+
+  <button class="back-btn" onclick="location.href='admin.html'">← Back to Dashboard</button>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- ═══════════ SCRIPT — COMPLETELY UNTOUCHED ═══════════ -->
+<script type="module">
+import { onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+    collection, query, where, getDocs, updateDoc, doc, getDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let allBookings = [];
+let adminVenue = "";
+let currentTab = "ongoing";
+
+// Hide loading overlay initially
+document.getElementById('loadingOverlay').style.display = 'none';
+
+// AUTH CHECK
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        location.href = "index.html";
+        return;
+    }
+
+    document.getElementById("adminEmail").textContent = user.email;
+
+    // Get admin venue from sessionStorage or Firebase
+    adminVenue = sessionStorage.getItem('adminVenue');
+    
+    if (!adminVenue) {
+        // Fallback: Get from Firebase
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            adminVenue = userData.venueslug || userData.venueSlug;
+            
+            if (adminVenue) {
+                sessionStorage.setItem('adminVenue', adminVenue);
+            }
+        }
+    }
+
+    if (!adminVenue) {
+        alert("Venue not found for this admin");
+        location.href = "admin.html";
+        return;
+    }
+
+    // Update UI with venue name
+    const venueName = formatVenueName(adminVenue);
+    document.getElementById("adminRole").textContent = `${venueName} Admin`;
+    document.getElementById("venueSubtitle").textContent = `Manage ${venueName} bookings`;
+
+    // Load bookings
+    await loadBookings();
+});
+
+// LOGOUT
+window.logoutNow = function() {
+    sessionStorage.clear();
+    signOut(auth).then(() => location.href = "index.html");
+};
+
+// FORMAT VENUE NAME
+function formatVenueName(slug) {
+    if (!slug) return "Venue";
+    return slug
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+// LOAD BOOKINGS
+async function loadBookings() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+
+    try {
+        const q = query(
+            collection(db, "bookings"),
+            where("facility", "==", adminVenue),
+            where("status", "==", "approved")
+        );
+
+        const snap = await getDocs(q);
+        allBookings = [];
+
+        snap.forEach(d => {
+            let data = d.data();
+            data.id = d.id;
+            allBookings.push(data);
+        });
+
+        displayBookings(allBookings);
+        switchTab('ongoing');
+    } catch (error) {
+        console.error("Error loading bookings:", error);
+        showToast("Error loading bookings: " + error.message, true);
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+}
+
+// CATEGORIZE & DISPLAY
+function displayBookings(list) {
+    const now = new Date();
+    
+    let ongoing = [];
+    let upcoming = [];
+    let completed = [];
+
+    list.forEach(b => {
+        const [start, end] = b.time.split("-");
+        const bookingDate = b.date;
+
+        const startDT = new Date(`${bookingDate}T${start}`);
+        const endDT = new Date(`${bookingDate}T${end}`);
+
+        if (now >= startDT && now <= endDT) {
+            ongoing.push(b);
+        } else if (startDT > now) {
+            upcoming.push(b);
+        } else {
+            completed.push(b);
+        }
+    });
+
+    fillList("ongoingContainer", ongoing, false);
+    fillList("upcomingContainer", upcoming, true);
+    fillList("completedContainer", completed, false);
+}
+
+// RENDER BOOKING CARDS
+function fillList(containerId, arr, allowCancel) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    if (arr.length === 0) {
+        const tabName = containerId.replace('Container', '');
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No ${tabName} bookings</h3>
+                <p>There are no ${tabName} bookings at the moment.</p>
+            </div>
+        `;
+        return;
+    }
+
+    arr.forEach(b => {
+        const card = document.createElement("div");
+        card.className = "booking-card";
+        
+        const info = document.createElement("div");
+        info.className = "booking-info";
+        info.innerHTML = `
+            <p>👤 <strong>Email:</strong> ${b.email}</p>
+            <p>📅 <strong>Date:</strong> ${b.date}</p>
+            <p>🕒 <strong>Time:</strong> ${b.time}</p>
+            <p>🏛️ <strong>Facility:</strong> ${b.facility}</p>
+        `;
+
+        card.appendChild(info);
+
+        if (allowCancel) {
+            const btn = document.createElement("button");
+            btn.className = "cancel-btn";
+            btn.textContent = "Cancel Booking";
+            btn.onclick = () => cancelBooking(b.id);
+            card.appendChild(btn);
+        }
+
+        container.appendChild(card);
+    });
+}
+
+// TAB SWITCHING
+window.switchTab = function(tabName, event) {
+    currentTab = tabName;
+    
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    if (event && event.target) {
+        event.target.classList.add('active');
+    } else {
+        document.querySelectorAll('.tab').forEach(tab => {
+            if (tab.textContent.toLowerCase().includes(tabName)) {
+                tab.classList.add('active');
+            }
+        });
+    }
+
+    document.getElementById('ongoingContainer').classList.add('hidden');
+    document.getElementById('upcomingContainer').classList.add('hidden');
+    document.getElementById('completedContainer').classList.add('hidden');
+
+    document.getElementById(tabName + 'Container').classList.remove('hidden');
+};
+
+// CANCEL BOOKING
+window.cancelBooking = async function(bookingId) {
+    if (!confirm("Are you sure you want to cancel this booking?")) return;
+
+    try {
+        await updateDoc(doc(db, "bookings", bookingId), {
+            status: "cancelled"
+        });
+
+        showToast("Booking Cancelled");
+        await loadBookings();
+    } catch (error) {
+        showToast("Error cancelling booking: " + error.message, true);
+    }
+};
+
+// DATE FILTER
+window.applyDateFilter = function() {
+    const from = document.getElementById("fromDate").value;
+    const to = document.getElementById("toDate").value;
+
+    if (!from || !to) {
+        alert("Please select both start and end dates");
+        return;
+    }
+
+    const filtered = allBookings.filter(b => b.date >= from && b.date <= to);
+    displayBookings(filtered);
+};
+
+window.clearFilter = function() {
+    document.getElementById("fromDate").value = "";
+    document.getElementById("toDate").value = "";
+    displayBookings(allBookings);
+};
+
+// TOAST NOTIFICATION
+function showToast(message, isError = false) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    
+    if (isError) {
+        toast.classList.add('error');
+    } else {
+        toast.classList.remove('error');
+    }
+    
+    toast.style.display = "block";
+    setTimeout(() => {
+        toast.style.display = "none";
+    }, 3000);
+}
+</script>
+</body>
+</html>

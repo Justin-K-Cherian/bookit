@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookIt Feedback</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Outfit:wght@200;300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- ═══ FIREBASE INIT ═══ -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth }       from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore }  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey:            "AIzaSyDYD768C9UY7PHq8BrQLN8paau3LmXAnFs",
+      authDomain:        "bookit-56e35.firebaseapp.com",
+      projectId:         "bookit-56e35",
+      storageBucket:     "bookit-56e35.appspot.com",
+      messagingSenderId: "813441391899",
+      appId:             "1:813441391899:web:d5bf9d33c6b81c983a87be"
+    };
+
+    const app    = initializeApp(firebaseConfig);
+    window.auth  = getAuth(app);
+    window.db    = getFirestore(app);
+  </script>
+
+  <style>
+    :root {
+      --primary:      #19304D;
+      --primary-mid:  #1f3c5e;
+      --primary-lt:   #274d78;
+      --primary-deep: #0f1f30;
+      --card-bg:      #1a3352;
+      --head-bg:      #162c47;
+      --gold:         #c9a96e;
+      --gold-lt:      #e8cfa0;
+      --gold-deep:    #a07840;
+      --white:        #ffffff;
+      --on-card:      rgba(255,255,255,0.90);
+      --on-card-mid:  rgba(255,255,255,0.52);
+      --on-card-soft: rgba(255,255,255,0.28);
+      --glass:        rgba(255,255,255,0.07);
+      --glass-border: rgba(255,255,255,0.13);
+      --yellow:       #f5c400;
+      --green:        #3d7844;
+      --red:          #ef4444;
+      --ink:          #0f1f30;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { min-height: 100vh; font-family: 'Outfit', sans-serif; background: var(--primary); color: var(--on-card); overflow-x: hidden; }
+
+    /* ── BACKGROUND ── */
+    .bg { position: fixed; inset: 0; z-index: 0; background: #19304D; overflow: hidden; pointer-events: none; }
+    .bg-depth {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 90% 80% at 0% 0%,   rgba(31,60,94,0.70) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 60% at 100% 100%, rgba(10,18,28,0.80) 0%, transparent 55%);
+    }
+    .stripes { position: absolute; inset: -60% -20%; width: 140%; height: 220%; transform: rotate(-28deg); }
+    .stripe { position: absolute; top: 0; bottom: 0; }
+    .s1 { left: 14%; width: 7%;  background: rgba(255,255,255,0.038); }
+    .s2 { left: 25%; width: 11%; background: rgba(255,255,255,0.028); }
+    .s3 { left: 41%; width: 5%;  background: rgba(255,255,255,0.048); }
+    .s4 { left: 55%; width: 2%;  background: rgba(255,255,255,0.025); }
+    .s5 { left: 63%; width: 6%;  background: rgba(255,255,255,0.020); }
+    .stripe-edge {
+      position: absolute; top: 0; bottom: 0; left: 22%; width: 1.5px;
+      background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.22) 15%, rgba(255,255,255,0.28) 40%, rgba(255,255,255,0.14) 75%, transparent 100%);
+    }
+    .bg-hlines {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 100% 180px; background-position: 0 90px;
+    }
+    .bg-grain {
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 220px; opacity: 0.55;
+    }
+    .bg-vignette {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 110% 110% at 50% 50%, transparent 45%, rgba(6,12,22,0.65) 100%);
+    }
+
+    /* ── PAGES ── */
+    .page { display: none; min-height: 100vh; position: relative; z-index: 2; }
+    .page.active { display: flex; flex-direction: column; align-items: center; }
+
+    /* ── TOP STRIPE & BOT STRIP ── */
+    .top-stripe { position: fixed; top: 0; left: 0; right: 0; z-index: 300; height: 3px; background: linear-gradient(90deg, var(--gold-deep), var(--gold), var(--gold-lt), var(--gold)); }
+    .bot-strip  { position: fixed; bottom: 0; left: 0; right: 0; z-index: 300; height: 3px; background: linear-gradient(90deg, var(--primary-lt), var(--primary-mid), var(--gold-deep)); }
+
+    /* ── BACK BUTTON ── */
+    .top-back {
+      position: fixed; top: 20px; left: 28px; z-index: 200;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 22px;
+      font-family: 'Outfit', sans-serif; font-size: 9px; font-weight: 600; letter-spacing: 3.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.80);
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(14px);
+      cursor: pointer; transition: all .28s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .top-back:hover {
+      background: rgba(255,255,255,0.16);
+      border-color: rgba(255,255,255,0.38);
+      color: #fff;
+      transform: translateX(-3px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.30);
+    }
+
+    /* ══ PAGE HOME ══ */
+    #page-home { justify-content: center; padding: 80px 24px 60px; }
+    .home-inner { text-align: center; max-width: 680px; width: 100%; }
+
+    .brand-eyebrow {
+      display: block; font-family: 'Outfit', sans-serif;
+      font-size: 9px; font-weight: 500; letter-spacing: 7px; text-transform: uppercase;
+      color: rgba(255,255,255,0.32); margin-bottom: 18px;
+    }
+    .home-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(52px, 9vw, 96px);
+      font-weight: 300; letter-spacing: -3px;
+      color: var(--white); line-height: 0.88;
+      text-shadow: 0 2px 80px rgba(0,0,0,0.5);
+      margin-bottom: 8px;
+    }
+    .home-title em { font-style: italic; color: rgba(255,255,255,0.42); font-weight: 300; }
+    .home-rule-wrap {
+      display: flex; align-items: center; justify-content: center; gap: 0;
+      margin: 24px auto 48px;
+    }
+    .h-rule { flex: 1; max-width: 80px; height: 1px; background: rgba(255,255,255,0.12); }
+    .h-label {
+      padding: 7px 28px;
+      font-family: 'Outfit', sans-serif; font-size: 9.5px; font-weight: 500; letter-spacing: 4px; text-transform: uppercase;
+      color: rgba(255,255,255,0.40);
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+    }
+
+    /* ── CARDS ── */
+    .card-row { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-bottom: 52px; }
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(16px);
+      padding: 40px 28px 34px;
+      width: 240px; cursor: pointer; text-align: center;
+      position: relative; overflow: hidden;
+      transition: transform .32s cubic-bezier(.16,1,.3,1), border-color .28s, box-shadow .28s;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+    }
+    .card::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), var(--gold-lt), var(--gold), transparent);
+      opacity: 0; transition: opacity .28s;
+    }
+    .card::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(125deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%);
+      transform: translateX(-130%); transition: transform .55s ease; pointer-events: none;
+    }
+    .card:hover { transform: translateY(-8px) scale(1.01); border-color: rgba(255,255,255,0.28); box-shadow: 0 -3px 0 var(--gold), 0 24px 60px rgba(0,0,0,0.45); }
+    .card:hover::before { opacity: 1; }
+    .card:hover::after  { transform: translateX(130%); }
+    .card .icon { font-size: 46px; margin-bottom: 18px; display: block; filter: drop-shadow(0 4px 14px rgba(0,0,0,0.35)); transition: transform .3s ease; }
+    .card:hover .icon { transform: scale(1.14) rotate(-4deg); }
+    .card h2 { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; color: var(--on-card); margin-bottom: 8px; }
+    .card p  { font-size: 11px; color: var(--on-card-mid); line-height: 1.7; letter-spacing: 0.3px; }
+
+    /* ── STAT STRIP ── */
+    .stat-strip { display: flex; gap: 36px; justify-content: center; flex-wrap: wrap; }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px; font-weight: 300; color: var(--gold); line-height: 1;
+    }
+    .stat-lbl { font-size: 9px; color: var(--on-card-soft); font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; margin-top: 4px; }
+    .home-quote {
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-size: 16px; color: var(--on-card-soft); margin-top: 40px; letter-spacing: .3px;
+    }
+
+    /* ══ PAGE SELECT ══ */
+    #page-select { padding: 80px 24px 60px; }
+    .page-select-inner { max-width: 900px; width: 100%; }
+    .section-eyebrow {
+      font-size: 9px; font-weight: 500; letter-spacing: 6px; text-transform: uppercase;
+      color: rgba(255,255,255,0.32); margin-bottom: 10px;
+    }
+    .section-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(36px, 5vw, 60px); font-weight: 300; letter-spacing: -1.5px;
+      color: var(--on-card); line-height: 0.95; margin-bottom: 6px;
+    }
+    .section-heading em { font-style: italic; color: var(--on-card-mid); }
+    .section-sub { font-size: 11px; color: var(--on-card-mid); margin-top: 10px; font-weight: 400; letter-spacing: .5px; }
+    .gold-rule { width: 60px; height: 2px; background: linear-gradient(90deg, var(--gold), var(--gold-lt)); margin: 18px 0 36px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 36px; }
+    .grid-item {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(14px);
+      padding: 30px 16px 26px;
+      cursor: pointer; text-align: center;
+      font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: .3px;
+      color: var(--on-card);
+      position: relative; overflow: hidden;
+      transition: all .28s cubic-bezier(.16,1,.3,1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.20);
+    }
+    .grid-item::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--gold-deep), var(--gold));
+      opacity: 0; transition: opacity .25s;
+    }
+    .grid-item:hover { transform: translateY(-6px); border-color: rgba(255,255,255,0.26); box-shadow: 0 -2px 0 var(--gold), 0 16px 44px rgba(0,0,0,0.40); background: rgba(255,255,255,0.12); }
+    .grid-item:hover::before { opacity: 1; }
+    .item-icon { font-size: 36px; display: block; margin-bottom: 12px; transition: transform .28s ease; filter: drop-shadow(0 3px 10px rgba(0,0,0,0.3)); }
+    .grid-item:hover .item-icon { transform: scale(1.2) rotate(-5deg); }
+    .page-quote { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 15px; color: var(--on-card-soft); margin-top: 8px; }
+
+    /* ══ PAGE FEEDBACK ══ */
+    #page-feedback { padding: 80px 24px 80px; }
+    .page-feedback-inner { max-width: 680px; width: 100%; }
+
+    .feedback-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-top: 2px solid var(--gold);
+      backdrop-filter: blur(18px);
+      padding: 0;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.30);
+      overflow: hidden;
+    }
+    .feedback-card-head {
+      padding: 18px 28px;
+      background: rgba(0,0,0,0.18);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .feedback-card-head-label { font-size: 9px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: var(--on-card-mid); }
+    .feedback-card-body { padding: 8px 28px 20px; }
+
+    .rating-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.07); gap: 12px; flex-wrap: wrap;
+      transition: all .22s;
+    }
+    .rating-row:last-child { border-bottom: none; }
+    .rating-row:hover { background: rgba(201,169,110,0.08); margin: 0 -28px; padding: 16px 28px; }
+    .rating-label { font-size: 13px; font-weight: 400; color: var(--on-card); flex: 1; min-width: 120px; letter-spacing: .2px; }
+    .stars { display: flex; gap: 5px; }
+    .star { font-size: 26px; cursor: pointer; color: rgba(255,255,255,0.14); transition: color .15s, transform .22s cubic-bezier(.16,1,.3,1); user-select: none; }
+    .star:hover { color: var(--gold); transform: scale(1.28) rotate(-5deg); }
+    .star.active { color: var(--gold); transform: scale(1.1); }
+
+    .comment-wrap { margin-bottom: 22px; }
+    .comment-label { display: block; font-size: 9px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase; color: var(--on-card-mid); margin-bottom: 10px; }
+    textarea {
+      width: 100%; min-height: 110px; padding: 16px 18px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.13);
+      backdrop-filter: blur(8px);
+      font-family: 'Outfit', sans-serif; font-size: 13px; color: var(--on-card); resize: vertical; outline: none;
+      transition: border-color .22s, box-shadow .22s;
+    }
+    textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,169,110,0.12); }
+    textarea::placeholder { color: var(--on-card-soft); }
+
+    .error-msg { color: #ff8080; font-size: 12px; font-weight: 500; margin-bottom: 14px; display: none; letter-spacing: .3px; }
+    .error-msg.visible { display: flex; align-items: center; gap: 6px; }
+    .error-msg::before { content: "⚠"; font-size: 14px; }
+
+    /* ── BUTTONS ── */
+    .submit-btn, .glass-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 16px 40px;
+      font-family: 'Outfit', sans-serif; font-size: 9.5px; font-weight: 600; letter-spacing: 4px; text-transform: uppercase;
+      color: rgba(255,255,255,0.88);
+      background: rgba(255,255,255,0.09);
+      border: 1.5px solid rgba(255,255,255,0.20);
+      backdrop-filter: blur(14px);
+      cursor: pointer; transition: all .28s cubic-bezier(.16,1,.3,1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.12);
+      position: relative; overflow: hidden;
+    }
+    .submit-btn::before {
+      content: ""; position: absolute; top: 0; left: 50%; right: 50%; height: 1.5px;
+      background: var(--gold); transition: left .28s, right .28s;
+    }
+    .submit-btn:hover::before { left: 0; right: 0; }
+    .submit-btn:hover, .glass-btn:hover {
+      background: rgba(255,255,255,0.17);
+      border-color: rgba(255,255,255,0.38);
+      color: #fff; transform: translateY(-2px);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-icon { font-size: 14px; transition: transform .25s; }
+    .submit-btn:hover .btn-icon { transform: translateX(4px); }
+
+    /* ── POPUP ── */
+    .popup {
+      display: none; position: fixed; inset: 0;
+      background: rgba(6,12,22,0.80); backdrop-filter: blur(16px);
+      justify-content: center; align-items: center; z-index: 9999;
+    }
+    .popup.active { display: flex; }
+    .popup-box {
+      background: var(--card-bg);
+      border-top: 2px solid var(--gold);
+      border: 1px solid rgba(255,255,255,0.10);
+      padding: 52px 44px; text-align: center; max-width: 400px; width: 90%;
+      box-shadow: 0 60px 120px rgba(0,0,0,0.55), 0 2px 0 var(--gold);
+      animation: popIn .4s cubic-bezier(.16,1,.3,1);
+      position: relative; overflow: hidden;
+    }
+    .popup-box::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), var(--gold-lt), var(--gold), transparent);
+    }
+    @keyframes popIn { from { opacity: 0; transform: scale(.85) translateY(24px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .popup-tick {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(201,169,110,0.12); border: 1px solid rgba(201,169,110,0.30);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; margin: 0 auto 24px;
+      animation: tickBounce .5s cubic-bezier(.16,1,.3,1) .2s both;
+    }
+    @keyframes tickBounce { from { transform: scale(0) rotate(-20deg); opacity: 0; } to { transform: scale(1) rotate(0deg); opacity: 1; } }
+    .popup-box h2 { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 300; color: var(--on-card); margin-bottom: 10px; }
+    .popup-box p  { font-size: 13px; color: var(--on-card-mid); margin-bottom: 32px; line-height: 1.7; }
+
+    @media (max-width: 540px) {
+      .card-row { flex-direction: column; align-items: center; }
+      .card { width: 100%; max-width: 320px; }
+      .grid { grid-template-columns: 1fr 1fr; }
+      .rating-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .submit-btn { width: 100%; text-align: center; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="bg-depth"></div>
+  <div class="stripes">
+    <div class="stripe s1"></div><div class="stripe s2"></div>
+    <div class="stripe s3"></div><div class="stripe s4"></div>
+    <div class="stripe s5"></div><div class="stripe-edge"></div>
+  </div>
+  <div class="bg-hlines"></div>
+  <div class="bg-grain"></div>
+  <div class="bg-vignette"></div>
+</div>
+
+<div class="top-stripe"></div>
+<div class="bot-strip"></div>
+
+<!-- PAGE HOME -->
+<section id="page-home" class="page active">
+  <span class="top-back" onclick="goBackToDashboard()">&#x2190; &nbsp;Back</span>
+  <div class="home-inner">
+    <span class="brand-eyebrow">MBITS &nbsp;&#x2014;&nbsp; BookIt</span>
+    <div class="home-title">Feedback <em>&amp; Review</em></div>
+    <div class="home-rule-wrap">
+      <span class="h-rule"></span>
+      <span class="h-label">Share your experience</span>
+      <span class="h-rule"></span>
+    </div>
+    <div class="card-row">
+      <div class="card" onclick="openCategory('sports')">
+        <span class="icon">🏸</span>
+        <h2>Sports Facilities</h2>
+        <p>Badminton, Cricket, Volleyball &amp; more</p>
+      </div>
+      <div class="card" onclick="openCategory('venues')">
+        <span class="icon">🏛️</span>
+        <h2>Venues</h2>
+        <p>Auditoriums &amp; Seminar Halls</p>
+      </div>
+    </div>
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num">9+</div><div class="stat-lbl">Facilities</div></div>
+      <div class="stat-item"><div class="stat-num">8</div><div class="stat-lbl">Rating Areas</div></div>
+      <div class="stat-item"><div class="stat-num">★</div><div class="stat-lbl">5-star Scale</div></div>
+    </div>
+    <p class="home-quote">"Your feedback builds a better campus."</p>
+  </div>
+</section>
+
+<!-- PAGE SELECT -->
+<section id="page-select" class="page">
+  <span class="top-back" onclick="goHome()">&#x2190; &nbsp;Back</span>
+  <div class="page-select-inner">
+    <p class="section-eyebrow">BookIt &nbsp;&#x2014;&nbsp; Step 01</p>
+    <div class="section-heading" id="select-title"></div>
+    <div class="gold-rule"></div>
+    <div class="grid" id="facility-grid"></div>
+    <p class="page-quote">"Great facilities begin with honest feedback."</p>
+  </div>
+</section>
+
+<!-- PAGE FEEDBACK -->
+<section id="page-feedback" class="page">
+  <span class="top-back" onclick="goSelect()">&#x2190; &nbsp;Back</span>
+  <div class="page-feedback-inner">
+    <p class="section-eyebrow">BookIt &nbsp;&#x2014;&nbsp; Step 02</p>
+    <div class="section-heading" id="feedback-title"></div>
+    <div class="gold-rule"></div>
+    <p class="section-sub" style="margin-bottom:28px;">Rate each aspect from 1 to 5 stars</p>
+
+    <div class="feedback-card">
+      <div class="feedback-card-head">
+        <span class="feedback-card-head-label">Rating Criteria</span>
+        <span style="font-size:9px;letter-spacing:2px;color:var(--on-card-soft);">01 / FEEDBACK</span>
+      </div>
+      <div class="feedback-card-body" id="question-box"></div>
+    </div>
+
+    <div class="comment-wrap">
+      <label class="comment-label">Additional Comments</label>
+      <textarea id="comment" placeholder="Tell us more about your experience (optional)…"></textarea>
+    </div>
+    <p class="error-msg" id="error-msg">Please rate all categories before submitting.</p>
+    <button class="submit-btn" id="submit-btn" onclick="submitFeedback()">
+      Submit Feedback <span class="btn-icon">&#x2192;</span>
+    </button>
+    <p class="page-quote" style="margin-top:32px;">"Your voice shapes better experiences."</p>
+
+    <div id="thankyou-popup" class="popup">
+      <div class="popup-box">
+        <div class="popup-tick">✓</div>
+        <h2>Thank you</h2>
+        <p>Your feedback has been recorded.<br>It helps us make campus facilities better.</p>
+        <button class="submit-btn" onclick="closePopup()">Done &nbsp;<span class="btn-icon">&#x2192;</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script type="module">
+  import { onAuthStateChanged }            from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { collection, addDoc, serverTimestamp }
+                                           from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  /* ─────────────────────────────────────────────
+   * DATA
+   * FIX 1: facility IDs now use hyphens to match
+   *         what the admin pages query in Firestore.
+   * FIX 2: rating questions use the exact keys the
+   *         admin pages expect to display.
+   * ───────────────────────────────────────────── */
+  const SPORTS_QUESTIONS = [
+    "Cleanliness",
+    "Ease of Booking",
+    "Equipment Availability",
+    "Ground / Court Quality",
+    "Lighting Quality",
+    "Safety Measures",
+    "Staff Support",
+    "Overall Experience"
+  ];
+
+  const VENUE_QUESTIONS = [
+    "Seating Comfort",
+    "AV Equipment",
+    "Acoustics / Projector",
+    "AC / Ventilation",
+    "Cleanliness",
+    "Ease of Booking",
+    "Staff Support",
+    "Overall Experience"
+  ];
+
+  const DATA = {
+    sports: {
+      title: "Sports Facilities",
+      items: [
+        { id: "cricket-nets",      label: "🏏 Cricket Nets",           questions: SPORTS_QUESTIONS },
+        { id: "main-ground",       label: "🏟️ Main Ground",             questions: SPORTS_QUESTIONS },
+        { id: "volleyball-court",  label: "🏐 Volleyball Court",        questions: SPORTS_QUESTIONS },
+        { id: "basketball-court",  label: "🏀 Basketball Court",        questions: SPORTS_QUESTIONS },
+        { id: "badminton-indoor",  label: "🏸 Indoor Badminton Court",  questions: SPORTS_QUESTIONS },
+        { id: "badminton-outdoor", label: "🏸 Outdoor Badminton Court", questions: SPORTS_QUESTIONS },
+        { id: "table-tennis",      label: "🏓 Table Tennis",            questions: SPORTS_QUESTIONS },
+        { id: "carroms",           label: "🎯 Carrom",                   questions: SPORTS_QUESTIONS },
+      ]
+    },
+    venues: {
+      title: "Halls & Auditoriums",
+      items: [
+        { id: "main-auditorium",      label: "🎭 Main Auditorium",      questions: VENUE_QUESTIONS },
+        { id: "apj-hall",             label: "🏛️ APJ Hall",             questions: VENUE_QUESTIONS },
+        { id: "aryabhatta-hall",      label: "🔭 Aryabhatta Hall",       questions: VENUE_QUESTIONS },
+        { id: "visweswarayya-hall",   label: "⚙️ Visweswarayya Hall",   questions: VENUE_QUESTIONS },
+        { id: "conference-room",      label: "🤝 Conference Room",       questions: VENUE_QUESTIONS },
+        { id: "kpj-reddy-hall",       label: "🎓 KPJ Reddy Hall",        questions: VENUE_QUESTIONS },
+      ]
+    }
+  };
+
+  let currentCategory = null;
+  let currentItem     = null;
+  const ratings       = {};
+  let currentUser     = null;
+
+  /* ── Auth – capture current user ── */
+  onAuthStateChanged(window.auth, (user) => {
+    currentUser = user || null;
+  });
+
+  /* ── Page helpers ── */
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  window.goHome   = () => showPage('page-home');
+  window.goSelect = () => showPage('page-select');
+  window.goBackToDashboard = () => { window.location.href = '../user.html'; };
+
+  /* ── Open category ── */
+  window.openCategory = function(cat) {
+    currentCategory = cat;
+    const catData = DATA[cat];
+    document.getElementById('select-title').textContent = catData.title;
+    const grid = document.getElementById('facility-grid');
+    grid.innerHTML = '';
+    catData.items.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'grid-item';
+      const parts = item.label.split(' ');
+      el.innerHTML = `<span class="item-icon">${parts[0]}</span>${parts.slice(1).join(' ')}`;
+      el.onclick = () => openFeedbackPage(item);
+      grid.appendChild(el);
+    });
+    showPage('page-select');
+  };
+
+  /* ── Open feedback form ── */
+  function openFeedbackPage(item) {
+    currentItem = item;
+    document.getElementById('feedback-title').textContent = item.label.split(' ').slice(1).join(' ');
+    const box = document.getElementById('question-box');
+    box.innerHTML = '';
+    Object.keys(ratings).forEach(k => delete ratings[k]);
+    document.getElementById('comment').value = '';
+
+    item.questions.forEach(q => {
+      const row = document.createElement('div');
+      row.className = 'rating-row';
+      row.innerHTML = `<span class="rating-label">${q}</span>
+        <div class="stars" data-q="${q}">
+          ${[1,2,3,4,5].map(n => `<span class="star" data-v="${n}">★</span>`).join('')}
+        </div>`;
+      box.appendChild(row);
+    });
+
+    box.querySelectorAll('.stars').forEach(starsEl => {
+      starsEl.querySelectorAll('.star').forEach(star => {
+        star.addEventListener('click', () => {
+          const q = starsEl.dataset.q, val = +star.dataset.v;
+          ratings[q] = val;
+          starsEl.querySelectorAll('.star').forEach(s =>
+            s.classList.toggle('active', +s.dataset.v <= val)
+          );
+        });
+      });
+    });
+
+    document.getElementById('error-msg').classList.remove('visible');
+    document.getElementById('submit-btn').disabled = false;
+    showPage('page-feedback');
+  }
+
+  /* ─────────────────────────────────────────────
+   * FIX 3: Actually write to Firestore.
+   * Document structure matches what admin pages
+   * query:  category, facility, ratings, comment,
+   *         userEmail, userId, createdAt
+   * ───────────────────────────────────────────── */
+  window.submitFeedback = async function() {
+    if (!currentItem.questions.every(q => ratings[q])) {
+      document.getElementById('error-msg').classList.add('visible');
+      return;
+    }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    try {
+      const docData = {
+        category:  currentCategory,                   // "sports" | "venues"
+        facility:  currentItem.id,                    // e.g. "main-ground"
+        ratings:   { ...ratings },                    // { "Cleanliness": 4, … }
+        comment:   document.getElementById('comment').value.trim(),
+        createdAt: serverTimestamp(),
+        userEmail: currentUser ? currentUser.email : "",
+        userId:    currentUser ? currentUser.uid   : ""
+      };
+
+      await addDoc(collection(window.db, "feedback"), docData);
+
+      document.getElementById('thankyou-popup').classList.add('active');
+
+    } catch (err) {
+      console.error("Feedback write failed:", err);
+      document.getElementById('error-msg').textContent =
+        "⚠ Could not save feedback. Please try again.";
+      document.getElementById('error-msg').classList.add('visible');
+      btn.disabled = false;
+      btn.innerHTML = 'Submit Feedback <span class="btn-icon">→</span>';
+    }
+  };
+
+  window.closePopup = function() {
+    document.getElementById('thankyou-popup').classList.remove('active');
+    window.goHome();
+  };
+</script>
+</body>
+</html>

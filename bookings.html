@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Bookings</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Outfit:wght@200;300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- FIREBASE — UNTOUCHED FROM ORIGINAL -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+    getFirestore, collection, query, where, getDocs, doc, updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDYD768C9UY7PHq8BrQLN8paau3LmXAnFs",
+    authDomain: "bookit-56e35.firebaseapp.com",
+    projectId: "bookit-56e35",
+    storageBucket: "bookit-56e35.appspot.com",
+    messagingSenderId: "813441391899",
+    appId: "1:813441391899:web:d5bf9d33c6b81c983a87be"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.db = db;
+window.auth = auth;
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+:root {
+  --primary:      #19304D;
+  --primary-mid:  #1f3c5e;
+  --primary-lt:   #274d78;
+  --primary-deep: #0f1f30;
+  --card-bg:      #1a3352;
+  --head-bg:      #162c47;
+  --gold:         #c9a96e;
+  --gold-lt:      #e8cfa0;
+  --gold-deep:    #a07840;
+  --white:        #ffffff;
+  --on-card:      rgba(255,255,255,0.90);
+  --on-card-mid:  rgba(255,255,255,0.50);
+  --on-card-soft: rgba(255,255,255,0.26);
+  --glass:        rgba(255,255,255,0.07);
+  --glass-hover:  rgba(255,255,255,0.13);
+  --glass-border: rgba(255,255,255,0.12);
+  --ink:          #0f1f30;
+  --input-bg:     rgba(255,255,255,0.07);
+  --c-confirmed:  #60a5fa;
+  --c-approved:   #34d399;
+  --c-pending:    #fbbf24;
+  --c-rejected:   #f87171;
+  --c-cancelled:  #94a3b8;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100vh;font-family:'Outfit',sans-serif;background:#19304D;overflow-x:hidden;color:var(--on-card)}
+
+/* ── BACKGROUND ── */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.bg-depth{position:absolute;inset:0;background:
+  radial-gradient(ellipse 90% 80% at 0% 0%, rgba(31,60,94,0.70) 0%, transparent 55%),
+  radial-gradient(ellipse 70% 60% at 100% 100%, rgba(10,18,28,0.80) 0%, transparent 55%)}
+.stripes{position:absolute;inset:-60% -20%;width:140%;height:220%;transform:rotate(-28deg)}
+.stripe{position:absolute;top:0;bottom:0}
+.s1{left:14%;width:7%;background:rgba(255,255,255,0.038)}
+.s2{left:25%;width:11%;background:rgba(255,255,255,0.028)}
+.s3{left:41%;width:5%;background:rgba(255,255,255,0.048)}
+.s4{left:55%;width:2%;background:rgba(255,255,255,0.025)}
+.stripe-edge{position:absolute;top:0;bottom:0;left:22%;width:1.5px;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,0.22) 15%,rgba(255,255,255,0.28) 40%,rgba(255,255,255,0.14) 75%,transparent 100%)}
+.bg-hlines{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px);
+  background-size:100% 180px;background-position:0 90px}
+.bg-grain{position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size:220px;opacity:0.55}
+.bg-vignette{position:absolute;inset:0;
+  background:radial-gradient(ellipse 110% 110% at 50% 50%,transparent 45%,rgba(6,12,22,0.65) 100%)}
+
+.top-stripe{position:fixed;top:0;left:0;right:0;z-index:300;height:3px;
+  background:linear-gradient(90deg,var(--gold-deep),var(--gold),var(--gold-lt),var(--gold))}
+.bot-strip{position:fixed;bottom:0;left:0;right:0;z-index:300;height:3px;
+  background:linear-gradient(90deg,var(--primary-lt),var(--primary-mid),var(--gold-deep))}
+
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:3px;z-index:200;display:flex;align-items:center;
+  justify-content:space-between;gap:14px;padding:0 32px;height:66px;
+  background:rgba(15,31,48,0.80);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  backdrop-filter:blur(20px);
+  box-shadow:0 4px 32px rgba(0,0,0,0.30)}
+.topbar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--gold),var(--gold-deep))}
+.topbar-heading{display:flex;flex-direction:column;gap:2px}
+.topbar-eyebrow{font-size:8px;font-weight:500;letter-spacing:4px;text-transform:uppercase;
+  color:rgba(255,255,255,0.32);line-height:1}
+.topbar-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;
+  color:var(--white);letter-spacing:-0.3px;line-height:1;display:flex;align-items:center;gap:8px}
+
+/* ── GLASS BTN ── */
+.back-btn{display:flex;align-items:center;gap:8px;padding:10px 22px;
+  font-family:'Outfit',sans-serif;font-size:9px;font-weight:600;letter-spacing:3.5px;text-transform:uppercase;
+  background:rgba(255,255,255,0.08);color:var(--on-card);
+  border:1.5px solid rgba(255,255,255,0.18);backdrop-filter:blur(14px);
+  cursor:pointer;transition:all .22s ease;
+  box-shadow:0 4px 16px rgba(0,0,0,0.20),inset 0 1px 0 rgba(255,255,255,0.10)}
+.back-btn:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.36);
+  color:#fff;transform:translate(-2px,-2px);box-shadow:4px 4px 0 rgba(0,0,0,0.25)}
+.back-btn:active{transform:translate(0,0);box-shadow:none}
+
+/* ── CONTAINER ── */
+.container{position:relative;z-index:10;max-width:1200px;margin:0 auto;padding:32px 24px 80px}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap}
+.tab{padding:11px 24px;font-family:'Outfit',sans-serif;font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;
+  background:rgba(255,255,255,0.06);backdrop-filter:blur(10px);
+  color:var(--on-card-mid);border:1.5px solid rgba(255,255,255,0.12);cursor:pointer;
+  transition:all .20s ease}
+.tab:hover{background:rgba(255,255,255,0.12);color:var(--on-card)}
+.tab.active{background:rgba(201,169,110,0.15);color:var(--gold);
+  border-color:rgba(201,169,110,0.35);box-shadow:0 0 0 1px rgba(201,169,110,0.12)}
+
+/* ── FILTERS ── */
+.filters-section{display:flex;gap:14px;margin-bottom:28px;flex-wrap:wrap;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:6px}
+.filter-label{font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;
+  color:rgba(255,255,255,0.40)}
+.filter-select,.filter-input{
+  background:rgba(255,255,255,0.07);padding:10px 14px;
+  border:1.5px solid rgba(255,255,255,0.12);
+  font-family:'Outfit',sans-serif;font-weight:500;font-size:13px;
+  color:var(--on-card);cursor:pointer;transition:all .18s ease;
+  backdrop-filter:blur(8px);min-width:160px}
+.filter-select option{background:#162c47;color:var(--on-card)}
+.filter-select:hover,.filter-input:hover{border-color:rgba(255,255,255,0.25)}
+.filter-select:focus,.filter-input:focus{outline:none;border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(201,169,110,0.12)}
+
+/* ── CALENDAR PICKER ── */
+.calendar-picker{position:absolute;background:var(--card-bg);
+  border:1.5px solid rgba(255,255,255,0.12);
+  box-shadow:0 24px 64px rgba(0,0,0,0.55);padding:20px;z-index:2000;
+  min-width:360px;display:none;top:calc(100% + 8px);backdrop-filter:blur(20px)}
+.calendar-picker.show{display:block}
+.calendar-mode-toggle{display:flex;gap:8px;margin-bottom:14px}
+.mode-btn{flex:1;padding:9px;border:1.5px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.05);
+  cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;font-size:11px;
+  letter-spacing:1px;text-transform:uppercase;color:var(--on-card-mid);transition:all .18s}
+.mode-btn.active{background:rgba(201,169,110,0.18);color:var(--gold);border-color:rgba(201,169,110,0.35)}
+.mode-btn:hover:not(.active){background:rgba(255,255,255,0.10);color:var(--on-card)}
+.calendar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.calendar-header button{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
+  width:32px;height:32px;font-size:14px;cursor:pointer;color:var(--on-card);
+  font-weight:bold;transition:all .15s}
+.calendar-header button:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.calendar-header h3{color:var(--on-card);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;margin:0}
+.calendar-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px}
+.calendar-weekday{text-align:center;color:var(--on-card-soft);font-family:'Outfit',sans-serif;
+  font-weight:700;font-size:9px;letter-spacing:1px;padding:6px 0;text-transform:uppercase}
+.calendar-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px}
+.calendar-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+  background:rgba(255,255,255,0.05);color:var(--on-card-mid);
+  transition:all .15s;border:1.5px solid transparent}
+.calendar-day:hover:not(.empty){background:rgba(255,255,255,0.12);color:var(--on-card);border-color:rgba(255,255,255,0.20)}
+.calendar-day.selected{background:rgba(201,169,110,0.25);color:var(--gold);border-color:rgba(201,169,110,0.40)}
+.calendar-day.in-range{background:rgba(201,169,110,0.10);color:var(--gold-lt)}
+.calendar-day.empty{cursor:default;background:none;border:none}
+.date-display{background:rgba(255,255,255,0.05);padding:10px 14px;margin-bottom:12px;
+  text-align:center;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;
+  color:var(--on-card-mid);min-height:38px;display:flex;align-items:center;
+  justify-content:center;border:1.5px solid rgba(255,255,255,0.10)}
+.date-display.filled{background:rgba(201,169,110,0.12);color:var(--gold);font-weight:600;border-color:rgba(201,169,110,0.30)}
+.calendar-actions{display:flex;gap:8px}
+.calendar-btn{flex:1;padding:10px;border:none;font-family:'Outfit',sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .18s}
+.calendar-btn.apply{background:rgba(201,169,110,0.20);color:var(--gold);border:1.5px solid rgba(201,169,110,0.35)}
+.calendar-btn.apply:hover{background:var(--gold);color:var(--ink)}
+.calendar-btn.cancel{background:rgba(255,255,255,0.06);color:var(--on-card-mid);border:1.5px solid rgba(255,255,255,0.10)}
+.calendar-btn.cancel:hover{background:rgba(255,255,255,0.12)}
+
+/* ── BOOKING GRID ── */
+.bookings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:30px}
+
+.card{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  backdrop-filter:blur(16px);
+  padding:24px;
+  box-shadow:0 4px 32px rgba(0,0,0,0.28);
+  transition:transform .22s cubic-bezier(.16,1,.3,1),box-shadow .22s ease;
+  position:relative;overflow:hidden;
+}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold-deep),var(--gold),transparent);
+  opacity:0.6}
+.card::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(125deg,transparent 30%,rgba(255,255,255,0.04) 50%,transparent 70%);
+  transform:translateX(-130%);transition:transform 0.60s ease;pointer-events:none;z-index:1}
+.card:hover::after{transform:translateX(130%)}
+.card:hover{transform:translateY(-4px);box-shadow:0 12px 48px rgba(0,0,0,0.40),0 0 0 1px rgba(255,255,255,0.10)}
+
+.card:has(.status-confirmed)::before{background:linear-gradient(90deg,transparent,var(--c-confirmed),transparent)}
+.card:has(.status-approved)::before{background:linear-gradient(90deg,transparent,var(--c-approved),transparent)}
+.card:has(.status-pending)::before{background:linear-gradient(90deg,transparent,var(--c-pending),transparent)}
+.card:has(.status-rejected)::before{background:linear-gradient(90deg,transparent,var(--c-rejected),transparent)}
+.card:has(.status-cancelled)::before{background:linear-gradient(90deg,transparent,var(--c-cancelled),transparent)}
+
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;position:relative;z-index:2}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
+  color:var(--on-card);margin-bottom:3px;line-height:1.1}
+.card-subtitle{font-family:'Outfit',sans-serif;font-size:9px;font-weight:600;
+  letter-spacing:3px;text-transform:uppercase;color:var(--on-card-soft)}
+.status-badge{padding:5px 12px;font-family:'Outfit',sans-serif;
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;flex-shrink:0;
+  backdrop-filter:blur(8px)}
+.status-confirmed{background:rgba(96,165,250,0.15);color:var(--c-confirmed);border:1px solid rgba(96,165,250,0.30)}
+.status-approved{background:rgba(52,211,153,0.15);color:var(--c-approved);border:1px solid rgba(52,211,153,0.30)}
+.status-pending{background:rgba(251,191,36,0.15);color:var(--c-pending);border:1px solid rgba(251,191,36,0.30)}
+.status-rejected{background:rgba(248,113,113,0.15);color:var(--c-rejected);border:1px solid rgba(248,113,113,0.30)}
+.status-cancelled{background:rgba(148,163,184,0.12);color:var(--c-cancelled);border:1px solid rgba(148,163,184,0.22)}
+
+.card-details{margin:16px 0;padding:14px 16px;background:rgba(0,0,0,0.18);
+  border:1px solid rgba(255,255,255,0.07);position:relative;z-index:2}
+.detail-row{display:flex;align-items:center;gap:10px;padding:7px 0;
+  font-size:13px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.detail-row:last-child{border-bottom:none;padding-bottom:0}
+.detail-row:first-child{padding-top:0}
+.detail-icon{font-size:15px;width:22px;flex-shrink:0;opacity:0.70}
+.detail-label{font-family:'Outfit',sans-serif;font-weight:700;font-size:9px;
+  letter-spacing:2px;min-width:65px;color:var(--on-card-soft);text-transform:uppercase}
+.detail-value{flex:1;color:var(--on-card);font-weight:400;font-size:13px}
+
+/* ── CARD BUTTONS (glass) ── */
+.btn-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;position:relative;z-index:2}
+.btn-row-secondary{display:flex;gap:8px;margin-top:8px;position:relative;z-index:2}
+.card-btn{
+  flex:1;padding:11px 8px;
+  font-family:'Outfit',sans-serif;font-weight:600;font-size:10px;
+  letter-spacing:2px;text-transform:uppercase;
+  border:1.5px solid rgba(255,255,255,0.14);
+  background:rgba(255,255,255,0.07);
+  color:var(--on-card);backdrop-filter:blur(10px);
+  cursor:pointer;transition:all .18s ease;
+  display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.08)}
+.card-btn:hover{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.28);
+  color:#fff;transform:translate(-2px,-2px);box-shadow:3px 3px 0 rgba(0,0,0,0.25)}
+.card-btn:active{transform:translate(0,0);box-shadow:none}
+
+.cancel-btn{border-color:rgba(248,113,113,0.22);color:var(--c-rejected)}
+.cancel-btn:hover{background:rgba(248,113,113,0.14);border-color:rgba(248,113,113,0.40);color:var(--c-rejected)}
+.cancel-btn:disabled{opacity:0.30;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.details-btn{border-color:rgba(201,169,110,0.22);color:var(--gold)}
+.details-btn:hover{background:rgba(201,169,110,0.14);border-color:rgba(201,169,110,0.40);color:var(--gold)}
+.receipt-btn{border-color:rgba(52,211,153,0.22);color:var(--c-approved)}
+.receipt-btn:hover{background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.40);color:var(--c-approved)}
+
+.no-bookings{text-align:center;padding:60px 20px;
+  background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.08);
+  backdrop-filter:blur(14px)}
+.no-bookings-icon{font-size:60px;margin-bottom:14px;opacity:0.55}
+.no-bookings div{font-family:'Outfit',sans-serif;font-size:15px;font-weight:400;color:var(--on-card-mid)}
+.loading{text-align:center;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;
+  color:rgba(255,255,255,0.55);padding:60px;letter-spacing:2px}
+
+/* ── POPUP ── */
+.popup-bg{position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(6,12,22,0.80);backdrop-filter:blur(16px);
+  display:none;justify-content:center;align-items:center;z-index:1000}
+.popup-box{background:var(--card-bg);width:90%;max-width:480px;padding:36px;
+  border-top:2px solid var(--gold);
+  border:1px solid rgba(255,255,255,0.10);
+  box-shadow:0 40px 80px rgba(0,0,0,0.55),0 2px 0 var(--gold);
+  animation:slideUp 0.28s cubic-bezier(.16,1,.3,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.popup-box h3{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;
+  color:var(--gold);margin-bottom:22px;display:flex;align-items:center;gap:10px}
+.popup-detail{padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.07);
+  color:var(--on-card-mid);font-size:13px;font-weight:400}
+.popup-detail:last-of-type{border-bottom:none}
+.popup-detail strong{color:var(--on-card);font-family:'Outfit',sans-serif;font-weight:600;margin-right:6px}
+.close-btn{margin-top:24px;
+  background:rgba(255,255,255,0.08);color:var(--on-card);padding:14px;width:100%;
+  border:1.5px solid rgba(255,255,255,0.18);backdrop-filter:blur(12px);
+  font-family:'Outfit',sans-serif;font-weight:600;font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  cursor:pointer;transition:all .18s;box-shadow:inset 0 1px 0 rgba(255,255,255,0.10)}
+.close-btn:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.34);color:#fff;
+  transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.30)}
+#receiptContent{display:none}
+
+@media(max-width:768px){
+  .bookings-grid{grid-template-columns:1fr}
+  .topbar{padding:0 16px;height:58px}
+  .container{padding:24px 14px 70px}
+  .filters-section{flex-direction:column}
+  .filter-group{width:100%}
+  .filter-select,.filter-input{width:100%}
+  .calendar-picker{min-width:100%;left:0;right:0}
+  .card-btn{font-size:9px;padding:10px 6px}
+}
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="bg-depth"></div>
+  <div class="stripes">
+    <div class="stripe s1"></div><div class="stripe s2"></div>
+    <div class="stripe s3"></div><div class="stripe s4"></div>
+    <div class="stripe-edge"></div>
+  </div>
+  <div class="bg-hlines"></div>
+  <div class="bg-grain"></div>
+  <div class="bg-vignette"></div>
+</div>
+<div class="top-stripe"></div>
+<div class="bot-strip"></div>
+
+<div class="topbar">
+  <div class="topbar-heading">
+    <span class="topbar-eyebrow">Bookit</span>
+    <span class="topbar-title">📘 My Bookings</span>
+  </div>
+  <button class="back-btn" onclick="location.href='profile.html'">&#x2190; &nbsp;Back to Profile</button>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <div class="tab active" id="tabUpcoming"  onclick="switchTab('upcoming')">📅 &nbsp;Upcoming</div>
+    <div class="tab"        id="tabOngoing"   onclick="switchTab('ongoing')">🔥 &nbsp;Ongoing</div>
+    <div class="tab"        id="tabCompleted" onclick="switchTab('completed')">✅ &nbsp;Completed</div>
+  </div>
+
+  <div class="filters-section">
+    <div class="filter-group">
+      <label class="filter-label">📅 &nbsp;Date</label>
+      <div class="filter-wrapper" style="position:relative">
+        <select id="dateFilter" class="filter-select" onchange="handleDateFilterChange()">
+          <option value="all">All Dates</option>
+          <option value="custom">Custom Date Range</option>
+        </select>
+        <div class="calendar-picker" id="calendarPicker">
+          <div class="calendar-mode-toggle">
+            <button class="mode-btn active" id="modeRange"  onclick="switchMode('range')">Date Range</button>
+            <button class="mode-btn"        id="modeSingle" onclick="switchMode('single')">Single Day</button>
+          </div>
+          <div class="calendar-header">
+            <button onclick="previousMonth()">←</button>
+            <h3 id="monthYear"></h3>
+            <button onclick="nextMonth()">→</button>
+          </div>
+          <div class="calendar-weekdays">
+            <div class="calendar-weekday">Sun</div><div class="calendar-weekday">Mon</div>
+            <div class="calendar-weekday">Tue</div><div class="calendar-weekday">Wed</div>
+            <div class="calendar-weekday">Thu</div><div class="calendar-weekday">Fri</div>
+            <div class="calendar-weekday">Sat</div>
+          </div>
+          <div class="calendar-days" id="calendarDays"></div>
+          <div id="dateDisplayRange"  class="date-display">Select from and to dates</div>
+          <div id="dateDisplaySingle" class="date-display" style="display:none;">Select a date</div>
+          <div class="calendar-actions">
+            <button class="calendar-btn apply"  onclick="applyDateRange()">Apply</button>
+            <button class="calendar-btn cancel" onclick="closeDatePicker()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">📊 &nbsp;Status</label>
+      <select id="statusFilter" class="filter-select" onchange="applyFilters()">
+        <option value="all">All Statuses</option>
+        <option value="approved_confirmed">Approved &amp; Confirmed</option>
+        <option value="pending">Pending</option>
+        <option value="rejected">Rejected</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">🏢 &nbsp;Facility</label>
+      <select id="facilityFilter" class="filter-select" onchange="applyFilters()">
+        <option value="all">All Facilities</option>
+        <option value="venue">Venue</option>
+        <option value="sport">Sport</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="loading" class="loading">Loading bookings…</div>
+  <div id="bookingList" class="bookings-grid"></div>
+</div>
+
+<div class="popup-bg" id="popup" onclick="closePopup()">
+  <div class="popup-box" onclick="event.stopPropagation()">
+    <h3>📋 Booking Details</h3>
+    <div class="popup-detail" id="pFacility"></div>
+    <div class="popup-detail" id="pType"></div>
+    <div class="popup-detail" id="pPurpose"></div>
+    <div class="popup-detail" id="pDate"></div>
+    <div class="popup-detail" id="pTime"></div>
+    <div class="popup-detail" id="pStatus"></div>
+    <div class="popup-detail" id="pEmail"></div>
+    <button class="close-btn" onclick="closePopup()">Close</button>
+  </div>
+</div>
+
+<div id="receiptContent"></div>
+
+<!-- ═══ ALL ORIGINAL SCRIPTS — UNTOUCHED ═══ -->
+<script type="module">
+import { 
+    collection, query, where, getDocs, doc, updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+let allBookings = [];
+let currentTab = "upcoming";
+let selectedStartDate = null;
+let selectedEndDate = null;
+let selectedSingleDate = null;
+let currentCalendarDate = new Date();
+let calendarMode = 'range';
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) return window.location.href = "index.html";
+    await loadBookings(user.uid);
+    document.getElementById("loading").style.display = "none";
+    displayBookings();
+});
+
+async function loadBookings(uid) {
+    try {
+        const q = query(collection(db, "bookings"), where("userId", "==", uid));
+        const snap = await getDocs(q);
+        allBookings = [];
+        snap.forEach(docu => { const data = docu.data(); allBookings.push({ id: docu.id, ...data }); });
+        allBookings.sort((a, b) => { if (a.date < b.date) return 1; if (a.date > b.date) return -1; return 0; });
+    } catch (error) {
+        console.error("Error loading bookings:", error);
+        document.getElementById("loading").innerHTML = '<div style="color:#f87171;">❌ Error loading bookings: ' + error.message + '</div>';
+    }
+}
+
+window.switchTab = function(tab) {
+    currentTab = tab;
+    document.getElementById("tabUpcoming").classList.remove("active");
+    document.getElementById("tabOngoing").classList.remove("active");
+    document.getElementById("tabCompleted").classList.remove("active");
+    document.getElementById("tab" + capitalize(tab)).classList.add("active");
+    displayBookings();
+};
+
+function getStatusClass(status) {
+    if (!status) return 'status-pending';
+    const s = status.toLowerCase();
+    if (s === 'confirmed') return 'status-confirmed';
+    if (s === 'approved') return 'status-approved';
+    if (s === 'pending') return 'status-pending';
+    if (s === 'rejected') return 'status-rejected';
+    if (s === 'cancelled') return 'status-cancelled';
+    return 'status-pending';
+}
+
+function getStatusDisplay(status) {
+    if (!status) return 'Pending';
+    const s = status.toLowerCase();
+    if (s === 'confirmed') return '✅ Confirmed';
+    if (s === 'approved') return '✅ Approved';
+    if (s === 'pending') return '⏳ Pending';
+    if (s === 'rejected') return '❌ Rejected';
+    if (s === 'cancelled') return '🚫 Cancelled';
+    return status;
+}
+
+function getEndTime(timeStr) { if (!timeStr || !timeStr.includes("-")) return "23:59"; return timeStr.split("-")[1].trim(); }
+function getLocalToday() { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`; }
+function getCurrentTime() { const now = new Date(); return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; }
+
+function canCancel(booking) {
+    if (!booking.status) return true;
+    const s = booking.status.toLowerCase();
+    if (s === 'rejected' || s === 'cancelled') return false;
+    const today = getLocalToday();
+    const bookingDate = booking.date;
+    if (bookingDate < today) return false;
+    if (bookingDate === today) { const currentTime = getCurrentTime(); const endTime = getEndTime(booking.time); if (endTime <= currentTime) return false; }
+    if (booking.facilityType === 'sport' && s === 'confirmed') return true;
+    if (booking.facilityType === 'venue') return s === 'pending' || s === 'approved';
+    return false;
+}
+
+function canDownloadReceipt(booking) {
+    if (!booking.status) return false;
+    const s = booking.status.toLowerCase();
+    if (booking.facilityType === 'sport' && s === 'confirmed') return true;
+    if (booking.facilityType === 'venue' && s === 'approved') return true;
+    return false;
+}
+
+function matchesFilters(booking) {
+    const statusFilter = document.getElementById("statusFilter").value;
+    const facilityFilter = document.getElementById("facilityFilter").value;
+    if (facilityFilter !== 'all') { if (booking.facilityType !== facilityFilter) return false; }
+    if (statusFilter !== 'all') {
+        const bookingStatus = booking.status ? booking.status.toLowerCase() : 'pending';
+        if (statusFilter === 'approved_confirmed') {
+            if (booking.facilityType === 'venue') { if (bookingStatus !== 'approved') return false; }
+            else if (booking.facilityType === 'sport') { if (bookingStatus !== 'confirmed') return false; }
+            else return false;
+        } else if (statusFilter !== bookingStatus) return false;
+    }
+    if (calendarMode === 'range' && selectedStartDate && selectedEndDate) {
+        const bookingDate = new Date(booking.date);
+        if (bookingDate < selectedStartDate || bookingDate > selectedEndDate) return false;
+    } else if (calendarMode === 'single' && selectedSingleDate) {
+        const bookingDate = new Date(booking.date);
+        if (bookingDate.getTime() !== selectedSingleDate.getTime()) return false;
+    }
+    return true;
+}
+
+window.applyFilters = function() { displayBookings(); };
+
+function displayBookings() {
+    let list = document.getElementById("bookingList");
+    list.innerHTML = "";
+    const today = getLocalToday();
+    const currentTime = getCurrentTime();
+    let filtered = allBookings.filter(b => {
+        if (currentTab === "upcoming") { if (!(b.date > today || (b.date === today && getEndTime(b.time) > currentTime))) return false; }
+        else if (currentTab === "ongoing") { if (!(b.date === today && getEndTime(b.time) > currentTime)) return false; }
+        else if (currentTab === "completed") { if (!(b.date < today || (b.date === today && getEndTime(b.time) <= currentTime))) return false; }
+        return matchesFilters(b);
+    });
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="no-bookings"><div class="no-bookings-icon">📭</div><div>No ${currentTab} bookings found.</div></div>`;
+        return;
+    }
+    filtered.forEach(b => {
+        const statusClass = getStatusClass(b.status);
+        const statusDisplay = getStatusDisplay(b.status);
+        const cancelEnabled = canCancel(b);
+        const receiptEnabled = canDownloadReceipt(b);
+        const bookingId = b.id;
+        list.innerHTML += `
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">${b.facility || 'Unknown Facility'}</div>
+                        <div class="card-subtitle">${b.facilityType || 'Unknown Type'}</div>
+                    </div>
+                    <span class="status-badge ${statusClass}">${statusDisplay}</span>
+                </div>
+                <div class="card-details">
+                    <div class="detail-row"><span class="detail-icon">📅</span><span class="detail-label">Date</span><span class="detail-value">${formatDate(b.date)}</span></div>
+                    <div class="detail-row"><span class="detail-icon">⏰</span><span class="detail-label">Time</span><span class="detail-value">${b.time || '-'}</span></div>
+                    <div class="detail-row"><span class="detail-icon">📝</span><span class="detail-label">Purpose</span><span class="detail-value">${b.purpose || '-'}</span></div>
+                </div>
+                <div class="btn-row">
+                    ${b.facilityType === "venue" && b.status?.toLowerCase() === "approved" && !b.calendarAdded ? `<button class="card-btn details-btn" onclick='addToCalendar(${JSON.stringify(b).replace(/'/g, "\'")}')>📅 Calendar</button>` : ""}
+                    <button class="card-btn cancel-btn" onclick="cancelBooking('${b.id}', '${b.facilityType}')" ${!cancelEnabled ? 'disabled' : ''}>❌ Cancel</button>
+                    <button class="card-btn details-btn" onclick='viewDetails(${JSON.stringify(b).replace(/'/g, "\'")}')>📋 Details</button>
+                </div>
+                ${receiptEnabled ? `<div class="btn-row-secondary"><button class="card-btn receipt-btn" onclick="downloadReceiptById('${bookingId}')">📥 Download Receipt</button></div>` : ''}
+            </div>`;
+    });
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+window.downloadReceiptById = function(bookingId) {
+    const booking = allBookings.find(b => b.id === bookingId);
+    if (!booking) { alert("❌ Booking not found!"); return; }
+    downloadReceipt(booking);
+};
+
+function downloadReceipt(b) {
+    const facilityName = b.facility || 'Unknown';
+    const date = b.date || 'N/A';
+    const time = b.time || 'N/A';
+    const email = b.email || 'N/A';
+    const receiptHTML = `<div style="padding:40px;font-family:'Poppins',sans-serif;max-width:400px;margin:0 auto;background:white;"><div style="text-align:center;margin-bottom:40px;"><h1 style="margin:0;color:#667eea;font-size:32px;">BookIt</h1><h2 style="margin:10px 0 0 0;color:#475569;font-size:18px;font-weight:600;">BOOKING RECEIPT</h2></div><div style="border-top:2px solid #e2e8f0;padding-top:30px;padding-bottom:30px;"><div style="margin-bottom:20px;"><p style="margin:0 0 10px 0;color:#64748b;font-size:13px;text-transform:uppercase;font-weight:600;">Facility</p><p style="margin:0;color:#1e293b;font-size:18px;font-weight:700;">${facilityName}</p></div><div style="margin-bottom:20px;"><p style="margin:0 0 8px 0;color:#64748b;font-size:13px;text-transform:uppercase;font-weight:600;">Date</p><p style="margin:0;color:#1e293b;font-size:16px;font-weight:600;">${formatDate(date)}</p></div><div style="margin-bottom:20px;"><p style="margin:0 0 8px 0;color:#64748b;font-size:13px;text-transform:uppercase;font-weight:600;">Time</p><p style="margin:0;color:#1e293b;font-size:16px;font-weight:600;">${time}</p></div><div style="margin-bottom:20px;"><p style="margin:0 0 8px 0;color:#64748b;font-size:13px;text-transform:uppercase;font-weight:600;">Email</p><p style="margin:0;color:#1e293b;font-size:16px;font-weight:600;">${email}</p></div></div><div style="border-top:2px solid #e2e8f0;padding-top:20px;text-align:center;"><p style="margin:0 0 5px 0;color:#64748b;font-size:12px;">Generated on ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})} at ${new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</p><p style="margin:0;color:#64748b;font-size:12px;font-weight:600;">MBITS, Kothamangalam</p></div></div>`;
+    const element = document.createElement('div');
+    element.innerHTML = receiptHTML;
+    const opt = { margin:10, filename:`BookIt_Receipt_${facilityName.replace(/\s+/g,'_')}_${date.replace(/\//g,'-')}.pdf`, image:{type:'jpeg',quality:0.98}, html2canvas:{scale:2}, jsPDF:{unit:'mm',format:'a4',orientation:'portrait'} };
+    html2pdf().set(opt).from(element).save();
+}
+
+window.cancelBooking = async function(id, facilityType) {
+    if (!confirm("⚠️ Are you sure you want to cancel this booking?")) return;
+    try {
+        await updateDoc(doc(db, "bookings", id), { status: "cancelled" });
+        const facilityTypeText = facilityType === 'sport' ? 'sports' : 'venue';
+        alert(`✅ Booking cancelled successfully. This ${facilityTypeText} slot is now available for others to book.`);
+        location.reload();
+    } catch (error) {
+        console.error("Error cancelling booking:", error);
+        alert("❌ Error cancelling booking: " + error.message);
+    }
+};
+
+window.viewDetails = function(b) {
+    document.getElementById("pFacility").innerHTML = "<strong>🏢 Facility:</strong> " + (b.facility || '-');
+    document.getElementById("pType").innerHTML = "<strong>📂 Type:</strong> " + (b.facilityType || '-');
+    document.getElementById("pPurpose").innerHTML = "<strong>📝 Purpose:</strong> " + (b.purpose || '-');
+    document.getElementById("pDate").innerHTML = "<strong>📅 Date:</strong> " + formatDate(b.date);
+    document.getElementById("pTime").innerHTML = "<strong>⏰ Time:</strong> " + (b.time || '-');
+    document.getElementById("pStatus").innerHTML = "<strong>📊 Status:</strong> " + getStatusDisplay(b.status);
+    document.getElementById("pEmail").innerHTML = "<strong>📧 Email:</strong> " + (b.email || '-');
+    document.getElementById("popup").style.display = "flex";
+};
+window.closePopup = function() { document.getElementById("popup").style.display = "none"; };
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function openGoogleCalendarEvent(booking) {
+    const [startTime, endTime] = booking.time.split("-");
+    const start = `${booking.date.replace(/-/g,"")}T${startTime.replace(":","0")}00`;
+    const end   = `${booking.date.replace(/-/g,"")}T${endTime.replace(":","0")}00`;
+    const url = "https://calendar.google.com/calendar/render?action=TEMPLATE" + `&text=${encodeURIComponent("MBITS Venue Booking")}` + `&dates=${start}/${end}` + `&details=${encodeURIComponent(`Venue: ${booking.facility}\nPurpose: ${booking.purpose}\nStatus: Approved`)}` + `&location=${encodeURIComponent("MBITS College, Kothamangalam")}` + `&trp=false`;
+    window.open(url, "_blank");
+}
+
+window.addToCalendar = async function(booking) {
+    openGoogleCalendarEvent(booking);
+    await updateDoc(doc(db, "bookings", booking.id), { calendarAdded: true });
+    alert("📅 Event opened in Google Calendar.\nSet reminder to 30 minutes before and click Save.");
+};
+
+window.switchMode = function(mode) {
+    calendarMode = mode;
+    const modeRange = document.getElementById("modeRange");
+    const modeSingle = document.getElementById("modeSingle");
+    const dateDisplayRange = document.getElementById("dateDisplayRange");
+    const dateDisplaySingle = document.getElementById("dateDisplaySingle");
+    if (mode === 'range') { modeRange.classList.add("active"); modeSingle.classList.remove("active"); dateDisplayRange.style.display = "flex"; dateDisplaySingle.style.display = "none"; }
+    else { modeRange.classList.remove("active"); modeSingle.classList.add("active"); dateDisplayRange.style.display = "none"; dateDisplaySingle.style.display = "flex"; }
+    renderCalendar();
+};
+
+window.handleDateFilterChange = function() {
+    const value = document.getElementById("dateFilter").value;
+    if (value === "custom") { openDatePicker(); }
+    else { selectedStartDate = null; selectedEndDate = null; selectedSingleDate = null; applyFilters(); }
+};
+
+window.openDatePicker = function() { currentCalendarDate = new Date(); renderCalendar(); document.getElementById("calendarPicker").classList.add("show"); };
+window.closeDatePicker = function() { document.getElementById("calendarPicker").classList.remove("show"); document.getElementById("dateFilter").value = "all"; selectedStartDate = null; selectedEndDate = null; selectedSingleDate = null; };
+window.previousMonth = function() { currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1); renderCalendar(); };
+window.nextMonth = function() { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1); renderCalendar(); };
+
+function renderCalendar() {
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+    document.getElementById("monthYear").textContent = currentCalendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    const calendarDays = document.getElementById("calendarDays");
+    calendarDays.innerHTML = "";
+    for (let i = 0; i < 42; i++) {
+        const day = new Date(startDate);
+        day.setDate(day.getDate() + i);
+        const dayElement = document.createElement("div");
+        dayElement.className = "calendar-day";
+        if (day.getMonth() !== month) { dayElement.classList.add("empty"); }
+        else {
+            dayElement.textContent = day.getDate();
+            dayElement.style.cursor = "pointer";
+            if (calendarMode === 'range') {
+                if (selectedStartDate && selectedEndDate) {
+                    if (day.getTime() === selectedStartDate.getTime() || day.getTime() === selectedEndDate.getTime()) dayElement.classList.add("selected");
+                    else if (day.getTime() > selectedStartDate.getTime() && day.getTime() < selectedEndDate.getTime()) dayElement.classList.add("in-range");
+                } else if (selectedStartDate && day.getTime() === selectedStartDate.getTime()) dayElement.classList.add("selected");
+            } else if (calendarMode === 'single') {
+                if (selectedSingleDate && day.getTime() === selectedSingleDate.getTime()) dayElement.classList.add("selected");
+            }
+            dayElement.onclick = () => selectDate(day);
+        }
+        calendarDays.appendChild(dayElement);
+    }
+    updateDateDisplay();
+}
+
+function updateDateDisplay() {
+    if (calendarMode === 'range') {
+        const displayRange = document.getElementById("dateDisplayRange");
+        if (selectedStartDate && selectedEndDate) { displayRange.innerHTML = `<strong>From:</strong>&nbsp;${formatDate(formatDateToString(selectedStartDate))}&nbsp;<strong>To:</strong>&nbsp;${formatDate(formatDateToString(selectedEndDate))}`; displayRange.classList.add("filled"); }
+        else if (selectedStartDate) { displayRange.innerHTML = `<strong>From:</strong>&nbsp;${formatDate(formatDateToString(selectedStartDate))}`; displayRange.classList.add("filled"); }
+        else { displayRange.innerHTML = "Select from and to dates"; displayRange.classList.remove("filled"); }
+    } else if (calendarMode === 'single') {
+        const displaySingle = document.getElementById("dateDisplaySingle");
+        if (selectedSingleDate) { displaySingle.innerHTML = `<strong>Selected:</strong>&nbsp;${formatDate(formatDateToString(selectedSingleDate))}`; displaySingle.classList.add("filled"); }
+        else { displaySingle.innerHTML = "Select a date"; displaySingle.classList.remove("filled"); }
+    }
+}
+
+function selectDate(date) {
+    if (calendarMode === 'single') { selectedSingleDate = new Date(date); }
+    else {
+        if (!selectedStartDate) { selectedStartDate = new Date(date); selectedEndDate = null; }
+        else if (!selectedEndDate) {
+            if (date < selectedStartDate) { selectedEndDate = selectedStartDate; selectedStartDate = new Date(date); }
+            else if (date.getTime() === selectedStartDate.getTime()) { selectedStartDate = null; }
+            else { selectedEndDate = new Date(date); }
+        } else { selectedStartDate = new Date(date); selectedEndDate = null; }
+    }
+    renderCalendar();
+}
+
+window.applyDateRange = function() {
+    if (calendarMode === 'range') {
+        if (selectedStartDate && selectedEndDate) { document.getElementById("calendarPicker").classList.remove("show"); applyFilters(); }
+        else alert("⚠️ Please select both start and end dates.");
+    } else if (calendarMode === 'single') {
+        if (selectedSingleDate) { document.getElementById("calendarPicker").classList.remove("show"); applyFilters(); }
+        else alert("⚠️ Please select a date.");
+    }
+};
+
+function formatDateToString(date) {
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
+</script>
+</body>
+</html>

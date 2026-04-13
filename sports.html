@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MBITS Sports - Select Sport</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Outfit:wght@200;300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary:      #19304D;
+      --primary-mid:  #1f3c5e;
+      --primary-lt:   #274d78;
+      --primary-deep: #0f1f30;
+      --white:        #ffffff;
+      --card-bg:      #1a3352;
+      --section-bg:   #1e3d60;
+      --head-bg:      #162c47;
+      --gold:         #c9a96e;
+      --gold-lt:      #e8cfa0;
+      --gold-deep:    #a07840;
+      --silver:       #b8bfcc;
+      --ink-dark:     #0f1f30;
+      --on-card:      rgba(255,255,255,0.88);
+      --on-card-mid:  rgba(255,255,255,0.52);
+      --on-card-soft: rgba(255,255,255,0.32);
+      --border:       rgba(255,255,255,0.10);
+      --border-mid:   rgba(255,255,255,0.14);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #19304D;
+      min-height: 100vh;
+      color: var(--white);
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ══ BACKGROUND ══ */
+    .bg { position: fixed; inset: 0; z-index: 0; background: #19304D; overflow: hidden; }
+    .bg-depth {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 90% 80% at 0% 0%,   rgba(31,60,94,0.70) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 60% at 100% 100%, rgba(10,18,28,0.80) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 55% at 50% 50%,  rgba(25,48,77,0.20) 0%, transparent 70%);
+    }
+    .stripes {
+      position: absolute; inset: -60% -20%;
+      width: 140%; height: 220%;
+      transform-origin: center center; transform: rotate(-28deg);
+      pointer-events: none;
+    }
+    .stripe { position: absolute; top: 0; bottom: 0; }
+    .stripe-1 { left: 14%;  width: 7%;  background: rgba(255,255,255,0.038); }
+    .stripe-2 { left: 25%;  width: 11%; background: rgba(255,255,255,0.028); }
+    .stripe-3 { left: 41%;  width: 5%;  background: rgba(255,255,255,0.048); }
+    .stripe-4 { left: 55%;  width: 2%;  background: rgba(255,255,255,0.025); }
+    .stripe-5 { left: 63%;  width: 6%;  background: rgba(255,255,255,0.020); }
+    .stripe-6 { left: 75%;  width: 3%;  background: rgba(255,255,255,0.032); }
+    .stripe-edge {
+      position: absolute; top: 0; bottom: 0; left: 22%; width: 1.5px;
+      background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.22) 15%, rgba(255,255,255,0.28) 40%, rgba(255,255,255,0.22) 65%, transparent 100%);
+    }
+    .stripe-edge-2 {
+      position: absolute; top: 0; bottom: 0; left: 38%; width: 1px;
+      background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.14) 20%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.10) 75%, transparent 100%);
+    }
+    .bg-hlines {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.055) 1px, transparent 1px);
+      background-size: 100% 180px; background-position: 0 90px;
+    }
+    .bg-grain {
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 220px; opacity: 0.55; pointer-events: none;
+    }
+    .bg-vignette {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 110% 110% at 50% 50%, transparent 45%, rgba(6,12,22,0.65) 100%),
+        linear-gradient(180deg, rgba(6,12,22,0.20) 0%, transparent 15%, transparent 85%, rgba(6,12,22,0.35) 100%);
+    }
+    .bg-corners { position: absolute; inset: 0; pointer-events: none; }
+
+    /* ══ PAGE LAYOUT ══ */
+    .page-wrap {
+      position: relative; z-index: 2;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center;
+      padding: 52px 70px 100px;
+    }
+
+    /* ══ HEADER ROW ══ */
+    .page-header {
+      width: 100%; max-width: 1000px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 52px;
+    }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 10px;
+      color: #ffffff; text-decoration: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 9px; letter-spacing: 3.5px; text-transform: uppercase; font-weight: 600;
+      padding: 12px 26px;
+      border: 1.5px solid rgba(255,255,255,0.70);
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(14px);
+      transition: all .28s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.30);
+    }
+    .back-link:hover {
+      background: rgba(255,255,255,0.30);
+      border-color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.40);
+    }
+
+    .brand-tag {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px; font-weight: 300; font-style: italic; letter-spacing: 1px;
+      color: rgba(255,255,255,0.75);
+    }
+    .brand-tag span { color: var(--gold); font-style: normal; font-weight: 600; }
+
+    /* ══ TITLE BLOCK ══ */
+    .title-block {
+      width: 100%; max-width: 1000px;
+      text-align: center; margin-bottom: 52px; position: relative;
+      animation: fadeUp .9s cubic-bezier(.16,1,.3,1) .05s both;
+    }
+    .title-block::before, .title-block::after {
+      content: ''; position: absolute;
+      width: 22px; height: 22px;
+      border-color: rgba(255,255,255,0.16); border-style: solid;
+    }
+    .title-block::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+    .title-block::after  { top: 0; right: 0; border-width: 1px 1px 0 0; }
+    .tb-bl, .tb-br {
+      position: absolute; width: 22px; height: 22px;
+      border-color: rgba(255,255,255,0.16); border-style: solid;
+    }
+    .tb-bl { bottom: 0; left: 0;  border-width: 0 0 1px 1px; }
+    .tb-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+    .eyebrow {
+      display: block;
+      font-family: 'Outfit', sans-serif;
+      font-size: 9.5px; font-weight: 500; letter-spacing: 7px; text-transform: uppercase;
+      color: rgba(255,255,255,0.35); margin-bottom: 14px; padding-top: 28px;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(52px, 7vw, 88px);
+      font-weight: 300; letter-spacing: -2.5px;
+      color: var(--white); line-height: 0.88;
+      text-shadow: 0 2px 80px rgba(0,0,0,0.5);
+    }
+    .hero-title .it { font-style: italic; font-weight: 300; color: rgba(255,255,255,0.52); }
+
+    .hero-sub {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; margin-top: 20px; padding-bottom: 24px;
+    }
+    .hs-rule { flex: 1; max-width: 60px; height: 1px; background: rgba(255,255,255,0.13); }
+    .hs-label {
+      padding: 6px 28px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 9.5px; font-weight: 500; letter-spacing: 4.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.42);
+      border: 1px solid rgba(255,255,255,0.11);
+      background: rgba(255,255,255,0.04);
+    }
+
+    /* ══ GRID CARD SHELL ══ */
+    .grid-card {
+      width: 100%; max-width: 1000px;
+      background: var(--card-bg);
+      position: relative; overflow: hidden;
+      box-shadow:
+        0 2px 0 var(--gold),
+        0 40px 100px rgba(6,12,22,0.65),
+        0 0 0 1px rgba(255,255,255,0.07) inset;
+      animation: cardIn .8s cubic-bezier(.16,1,.3,1) .2s both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .grid-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), var(--gold-lt), var(--gold), transparent);
+      z-index: 2;
+    }
+    .grid-card::after {
+      content: '';
+      position: absolute; top: 0; right: 0; bottom: 0; width: 340px;
+      background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.025) 100%);
+      pointer-events: none;
+    }
+
+    .grid-card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 44px;
+      background: var(--head-bg);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .grid-card-head-label {
+      font-family: 'Outfit', sans-serif;
+      font-size: 9px; font-weight: 500; letter-spacing: 5px; text-transform: uppercase;
+      color: var(--on-card-mid);
+    }
+    .grid-card-head-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 11px; font-weight: 300; letter-spacing: 3px;
+      color: var(--on-card-soft);
+    }
+
+    /* ══════════════════════════════════
+       SPORT GRID — with gap & padding (premium)
+    ══════════════════════════════════ */
+    .sport-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;         /* ← gap between sport cards */
+      padding: 24px;     /* ← breathing room inside the shell */
+      background: rgba(10,20,36,0.30);
+      position: relative; z-index: 1;
+    }
+
+    /* ══ SPORT CARD ══ */
+    .sport-card {
+      position: relative;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--section-bg);
+      min-height: 220px;
+      display: flex; align-items: flex-end;
+      cursor: pointer; overflow: hidden;
+      /* removed border-right/bottom dividers — gap handles separation */
+      border: 1px solid rgba(255,255,255,0.07);
+      transition: flex .4s cubic-bezier(.16,1,.3,1);
+    }
+
+    .sport-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(0deg, rgba(6,12,22,0.88) 0%, rgba(6,12,22,0.30) 60%, transparent 100%);
+      transition: background .35s; z-index: 1;
+    }
+
+    .sport-card-accent {
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-lt));
+      transform: scaleX(0); transform-origin: left;
+      transition: transform .35s cubic-bezier(.16,1,.3,1); z-index: 3;
+    }
+
+    .sport-card-shimmer {
+      position: absolute; inset: 0;
+      background: linear-gradient(125deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%);
+      transform: translate(-120%, 120%);
+      transition: transform .55s ease; z-index: 2;
+    }
+
+    .sport-card:hover::before { background: linear-gradient(0deg, rgba(6,12,22,0.48) 0%, rgba(6,12,22,0.10) 60%, transparent 100%); }
+    .sport-card:hover .sport-card-accent { transform: scaleX(1); }
+    .sport-card:hover .sport-card-shimmer { transform: translate(120%, -120%); }
+    .sport-card:hover .card-arrow { transform: translateX(6px); color: var(--gold); opacity: 1; }
+    .sport-card:hover .card-title { color: var(--gold); letter-spacing: 3px; }
+    .sport-card:hover .card-bg-img { transform: scale(1.06); }
+
+    .card-bg-img {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      filter: saturate(0) brightness(.52);
+      transition: transform .6s cubic-bezier(.16,1,.3,1), filter .55s ease;
+      z-index: 0;
+    }
+    .sport-card:hover .card-bg-img { filter: saturate(1) brightness(.72); }
+
+    .card-content {
+      position: relative; z-index: 4;
+      padding: 20px 24px 22px; width: 100%;
+      display: flex; justify-content: space-between; align-items: flex-end;
+    }
+    .card-inner-left { display: flex; flex-direction: column; gap: 4px; }
+
+    .card-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; letter-spacing: 3px; color: var(--gold); opacity: 0.6;
+    }
+
+    .card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 400; letter-spacing: 1px;
+      color: var(--on-card); line-height: 1;
+      transition: color .28s, letter-spacing .28s;
+    }
+
+    .card-tag {
+      font-family: 'Outfit', sans-serif;
+      font-size: 8px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--on-card-soft); margin-top: 2px;
+    }
+
+    .card-arrow {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 300;
+      color: rgba(201,169,110,0.30); opacity: 0.6;
+      transition: transform .25s, color .25s, opacity .25s;
+    }
+
+    /* Stagger animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .sport-card:nth-child(1) { animation: fadeUp .8s cubic-bezier(.16,1,.3,1) .18s both; }
+    .sport-card:nth-child(2) { animation: fadeUp .8s cubic-bezier(.16,1,.3,1) .24s both; }
+    .sport-card:nth-child(3) { animation: fadeUp .8s cubic-bezier(.16,1,.3,1) .30s both; }
+    .sport-card:nth-child(4) { animation: fadeUp .8s cubic-bezier(.16,1,.3,1) .36s both; }
+    .sport-card:nth-child(5) { animation: fadeUp .8s cubic-bezier(.16,1,.3,1) .42s both; }
+    .sport-card:nth-child(6) { animation: fadeUp .8s cubic-bezier(.16,1,.3,1) .48s both; }
+    .sport-card:nth-child(7) { animation: fadeUp .8s cubic-bezier(.16,1,.3,1) .54s both; }
+    .sport-card:nth-child(8) { animation: fadeUp .8s cubic-bezier(.16,1,.3,1) .60s both; }
+
+    /* ══ CARD FOOTER ══ */
+    .grid-card-foot {
+      padding: 18px 44px;
+      background: var(--head-bg);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .foot-hint {
+      font-family: 'Outfit', sans-serif;
+      font-size: 8.5px; font-weight: 500; letter-spacing: 4px; text-transform: uppercase;
+      color: var(--on-card-soft);
+    }
+    .foot-count {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 13px; font-weight: 300; letter-spacing: 2px;
+      color: var(--gold); opacity: 0.7;
+    }
+
+    /* ══ BACK BUTTON ROW ══ */
+    .back-row {
+      width: 100%; max-width: 1000px;
+      margin-top: 36px;
+      display: flex; align-items: center; gap: 20px;
+      animation: fadeUp .8s cubic-bezier(.16,1,.3,1) .72s both;
+    }
+    .back-rule { flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
+
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 40px;
+      border: 1.5px solid rgba(255,255,255,0.30);
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.75);
+      font-family: 'Outfit', sans-serif;
+      font-size: 9px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase;
+      cursor: pointer; transition: all .28s ease;
+      backdrop-filter: blur(8px);
+      position: relative; overflow: hidden;
+    }
+    .back-btn::before {
+      content: '';
+      position: absolute; top: 0; left: 50%; right: 50%; height: 1px;
+      background: var(--gold); transition: left .28s, right .28s;
+    }
+    .back-btn:hover::before { left: 0; right: 0; }
+    .back-btn:hover {
+      background: rgba(255,255,255,0.18);
+      border-color: rgba(255,255,255,0.60);
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 16px 40px rgba(6,12,22,0.35);
+    }
+
+    /* ══ LOADING / ERROR ══ */
+    .loading, .error {
+      text-align: center; padding: 2rem; display: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
+    }
+    .loading { color: var(--on-card-mid); }
+    .error   { color: #ef4444; }
+
+    /* ══ RESPONSIVE ══ */
+    @media (max-width: 700px) {
+      .page-wrap { padding: 36px 20px 60px; }
+      .sport-grid { grid-template-columns: 1fr 1fr; padding: 14px; gap: 10px; }
+      .sport-card { min-height: 160px; }
+      .page-header { flex-direction: column; gap: 16px; }
+      .hero-title { font-size: 52px; }
+      .grid-card-foot, .grid-card-head { padding: 16px 20px; }
+      .back-row { flex-direction: column; }
+      .back-btn { width: 100%; justify-content: center; }
+    }
+    @media (max-width: 450px) {
+      .sport-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- BACKGROUND -->
+<div class="bg">
+  <div class="bg-depth"></div>
+  <div class="stripes">
+    <div class="stripe stripe-1"></div>
+    <div class="stripe stripe-2"></div>
+    <div class="stripe stripe-3"></div>
+    <div class="stripe stripe-4"></div>
+    <div class="stripe stripe-5"></div>
+    <div class="stripe stripe-6"></div>
+    <div class="stripe-edge"></div>
+    <div class="stripe-edge-2"></div>
+  </div>
+  <div class="bg-hlines"></div>
+  <svg class="bg-corners" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <polyline points="70,48 24,48 24,4 70,4"   fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>
+    <polyline points="1370,4 1416,4 1416,48 1370,48" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+    <polyline points="24,852 24,896 70,896"     fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1"/>
+    <polyline points="1416,852 1416,896 1370,896" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <circle cx="720" cy="42" r="2" fill="rgba(255,255,255,0.18)"/>
+    <circle cx="24"  cy="450" r="2" fill="rgba(255,255,255,0.12)"/>
+    <circle cx="1416" cy="450" r="2" fill="rgba(255,255,255,0.12)"/>
+    <line x1="720" y1="30" x2="720" y2="870" stroke="rgba(255,255,255,0.022)" stroke-width="1" stroke-dasharray="4 20"/>
+    <line x1="80"  y1="4" x2="680" y2="4"    stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+    <line x1="760" y1="4" x2="1360" y2="4"   stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+    <polygon points="720,34 727,41 720,48 713,41" fill="none" stroke="rgba(255,255,255,0.20)" stroke-width="1"/>
+  </svg>
+  <div class="bg-grain"></div>
+  <div class="bg-vignette"></div>
+</div>
+
+<!-- PAGE -->
+<div class="page-wrap">
+
+  <div class="page-header">
+    <a href="javascript:goBack()" class="back-link">&#x2190; &nbsp;Back</a>
+    <div class="brand-tag">MBITS <span>Sports</span></div>
+  </div>
+
+  <div class="loading" id="loading">Checking access…</div>
+  <div class="error" id="error"></div>
+
+  <div class="title-block">
+    <span class="tb-bl"></span>
+    <span class="tb-br"></span>
+    <span class="eyebrow">MBITS &nbsp;&mdash;&nbsp; Athletic Campus</span>
+    <div class="hero-title">Select a <span class="it">Sport</span></div>
+    <div class="hero-sub">
+      <span class="hs-rule"></span>
+      <span class="hs-label">Choose your facility</span>
+      <span class="hs-rule"></span>
+    </div>
+  </div>
+
+  <div class="grid-card">
+
+    <div class="grid-card-head">
+      <span class="grid-card-head-label">Facility Selection</span>
+      <span class="grid-card-head-num">08 / VENUES</span>
+    </div>
+
+    <div class="sport-grid">
+
+      <div class="sport-card" data-bg="images/cricket-nets.png" data-sport="cricket" data-slug="cricket-nets"
+           onclick="selectSport('cricket', 'cricket-nets')" tabindex="0">
+        <div class="sport-card-accent"></div>
+        <div class="sport-card-shimmer"></div>
+        <div class="card-bg-img" style="background-image:url('images/cricket-nets.png')"></div>
+        <div class="card-content">
+          <div class="card-inner-left">
+            <span class="card-num">01</span>
+            <span class="card-title">Cricket Nets</span>
+            <span class="card-tag">Outdoor &middot; Practice</span>
+          </div>
+          <span class="card-arrow">&#x2192;</span>
+        </div>
+      </div>
+
+      <div class="sport-card" data-bg="images/main-ground.png" data-sport="football" data-slug="main-ground"
+           onclick="selectSport('football', 'main-ground')" tabindex="0">
+        <div class="sport-card-accent"></div>
+        <div class="sport-card-shimmer"></div>
+        <div class="card-bg-img" style="background-image:url('images/main-ground.png')"></div>
+        <div class="card-content">
+          <div class="card-inner-left">
+            <span class="card-num">02</span>
+            <span class="card-title">Main Ground</span>
+            <span class="card-tag">Outdoor &middot; Match</span>
+          </div>
+          <span class="card-arrow">&#x2192;</span>
+        </div>
+      </div>
+
+      <div class="sport-card" data-bg="images/volleyball.png" data-sport="volleyball" data-slug="volleyball-court"
+           onclick="selectSport('volleyball', 'volleyball')" tabindex="0">
+        <div class="sport-card-accent"></div>
+        <div class="sport-card-shimmer"></div>
+        <div class="card-bg-img" style="background-image:url('images/volleyball.png')"></div>
+        <div class="card-content">
+          <div class="card-inner-left">
+            <span class="card-num">03</span>
+            <span class="card-title">Volleyball</span>
+            <span class="card-tag">Outdoor &middot; Court</span>
+          </div>
+          <span class="card-arrow">&#x2192;</span>
+        </div>
+      </div>
+
+      <div class="sport-card" data-bg="images/basketball.png" data-sport="basketball" data-slug="basketball-court"
+           onclick="selectSport('basketball', 'basketball')" tabindex="0">
+        <div class="sport-card-accent"></div>
+        <div class="sport-card-shimmer"></div>
+        <div class="card-bg-img" style="background-image:url('images/basketball.png')"></div>
+        <div class="card-content">
+          <div class="card-inner-left">
+            <span class="card-num">04</span>
+            <span class="card-title">Basketball</span>
+            <span class="card-tag">Outdoor &middot; Court</span>
+          </div>
+          <span class="card-arrow">&#x2192;</span>
+        </div>
+      </div>
+
+      <div class="sport-card" data-bg="images/indoor-badminton.png" data-sport="badminton-indoor" data-slug="badminton-indoor"
+           onclick="selectSport('badminton-indoor', 'badminton-indoor')" tabindex="0">
+        <div class="sport-card-accent"></div>
+        <div class="sport-card-shimmer"></div>
+        <div class="card-bg-img" style="background-image:url('images/indoor-badminton.png')"></div>
+        <div class="card-content">
+          <div class="card-inner-left">
+            <span class="card-num">05</span>
+            <span class="card-title">Indoor Badminton</span>
+            <span class="card-tag">Indoor &middot; Court</span>
+          </div>
+          <span class="card-arrow">&#x2192;</span>
+        </div>
+      </div>
+
+      <div class="sport-card" data-bg="images/outdoor-badminton.png" data-sport="badminton-outdoor" data-slug="badminton-outdoor"
+           onclick="selectSport('badminton-outdoor', 'badminton-outdoor')" tabindex="0">
+        <div class="sport-card-accent"></div>
+        <div class="sport-card-shimmer"></div>
+        <div class="card-bg-img" style="background-image:url('images/outdoor-badminton.png')"></div>
+        <div class="card-content">
+          <div class="card-inner-left">
+            <span class="card-num">06</span>
+            <span class="card-title">Outdoor Badminton</span>
+            <span class="card-tag">Outdoor &middot; Court</span>
+          </div>
+          <span class="card-arrow">&#x2192;</span>
+        </div>
+      </div>
+
+      <div class="sport-card" data-bg="images/tabletennis.png" data-sport="table-tennis" data-slug="table-tennis"
+           onclick="selectSport('table-tennis', 'table-tennis')" tabindex="0">
+        <div class="sport-card-accent"></div>
+        <div class="sport-card-shimmer"></div>
+        <div class="card-bg-img" style="background-image:url('images/tabletennis.png')"></div>
+        <div class="card-content">
+          <div class="card-inner-left">
+            <span class="card-num">07</span>
+            <span class="card-title">Table Tennis</span>
+            <span class="card-tag">Indoor &middot; Hall</span>
+          </div>
+          <span class="card-arrow">&#x2192;</span>
+        </div>
+      </div>
+
+      <div class="sport-card" data-bg="images/carroms.png" data-sport="carroms" data-slug="carroms"
+           onclick="selectSport('carroms', 'carroms')" tabindex="0">
+        <div class="sport-card-accent"></div>
+        <div class="sport-card-shimmer"></div>
+        <div class="card-bg-img" style="background-image:url('images/carroms.png')"></div>
+        <div class="card-content">
+          <div class="card-inner-left">
+            <span class="card-num">08</span>
+            <span class="card-title">Carroms</span>
+            <span class="card-tag">Indoor &middot; Board</span>
+          </div>
+          <span class="card-arrow">&#x2192;</span>
+        </div>
+      </div>
+
+    </div><!-- /sport-grid -->
+
+    <div class="grid-card-foot">
+      <span class="foot-hint">Tap any facility to proceed</span>
+      <span class="foot-count">MBITS &nbsp;/&nbsp; 2026</span>
+    </div>
+
+  </div><!-- /grid-card -->
+
+  <div class="back-row">
+    <div class="back-rule"></div>
+    <button class="back-btn" onclick="goBack()">&#x2190; &nbsp; Return to Dashboard</button>
+    <div class="back-rule"></div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<!-- ══ ORIGINAL SCRIPT — COMPLETELY UNTOUCHED ══ -->
+<script type="module">
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.sport-card').forEach(card => {
+      const bgPath = card.getAttribute('data-bg');
+      if (bgPath) {
+        card.style.backgroundImage = `url('${bgPath}')`;
+      }
+    });
+  });
+
+  import { auth, db } from "./firebase.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const loadingEl = document.getElementById("loading");
+  const errorEl = document.getElementById("error");
+  loadingEl.style.display = "block";
+
+  onAuthStateChanged(auth, async (user) => {
+    loadingEl.style.display = "none";
+    if (!user) { 
+      showError("Please login"); 
+      setTimeout(() => window.location.href = "login.html", 2000); 
+      return; 
+    }
+    
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists() || userDoc.data().role !== "user") {
+        showError("Access denied"); 
+        setTimeout(() => window.location.href = "login.html", 2000); 
+        return;
+      }
+    } catch (e) { 
+      showError("Please login"); 
+      setTimeout(() => window.location.href = "login.html", 2000); 
+    }
+  });
+
+  function showError(msg) { 
+    errorEl.textContent = msg; 
+    errorEl.style.display = "block"; 
+  }
+
+  window.selectSport = (sport, slug) => {
+    if (navigator.vibrate) navigator.vibrate(50);
+    localStorage.setItem("selectedSport", slug);
+    if (slug === 'cricket-nets') {
+      window.location.href = "sport-cricket-nets.html";
+    } else if (slug === 'main-ground') {
+      window.location.href = "sport-main-ground.html";
+    } else {
+      window.location.href = `sport-${slug}.html`;
+    }
+  };
+
+  window.goBack = () => { 
+    if (navigator.vibrate) navigator.vibrate(30); 
+    window.location.href = "user.html"; 
+  };
+
+  document.querySelectorAll('.sport-card').forEach(card => {
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const sport = card.dataset.sport;
+        const slug = card.dataset.slug;
+        selectSport(sport, slug);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

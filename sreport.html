@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports & Analytics – BookIt</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --g900:#052e16;--g800:#064e3b;--g700:#065f46;--g600:#047857;
+  --g500:#059669;--g400:#10b981;--g300:#34d399;--g200:#6ee7b7;
+  --g100:#a7f3d0;--g50:#d1fae5;--g25:#ecfdf5;
+  --w:#fff;
+  --s900:#0f172a;--s800:#1e293b;--s700:#334155;--s600:#475569;
+  --s500:#64748b;--s400:#94a3b8;--s300:#cbd5e1;--s200:#e2e8f0;
+  --s100:#f1f5f9;--s50:#f8fafc;
+  --r500:#ef4444;--r50:#fef2f2;
+  --blue:#2563eb;--blue-l:#dbeafe;--blue-ll:#eff6ff;
+  --amber:#d97706;--amber-l:#fde68a;--amber-ll:#fffbeb;
+  --fh:'Lora',serif;--fb:'Plus Jakarta Sans',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:18px;}
+body{font-family:var(--fb);background:var(--g25);color:var(--s800);min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:var(--g800);border-bottom:3px solid var(--g600);padding:0 44px;height:72px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(6,78,59,.35);}
+.tl{display:flex;align-items:center;gap:14px;}
+.bi{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,var(--g400),var(--g700));
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  border:2px solid rgba(255,255,255,.2);box-shadow:0 2px 10px rgba(0,0,0,.3);}
+.bn{font-family:var(--fh);font-size:20px;font-weight:700;color:var(--w);}
+.bst{font-size:11.5px;font-weight:600;color:var(--g300);letter-spacing:.07em;text-transform:uppercase;}
+.tdiv{width:1px;height:36px;background:rgba(255,255,255,.15);margin:0 4px;}
+.portal-pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  color:var(--g300);font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;letter-spacing:.04em;}
+.tr{display:flex;align-items:center;gap:14px;}
+.up{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.18);border-radius:40px;padding:6px 16px 6px 6px;}
+.ua{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--g300),var(--g600));
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--g900);}
+.ue{font-size:14px;font-weight:600;color:rgba(255,255,255,.9);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ur{font-size:11px;font-weight:500;color:var(--g300);}
+.logout-btn{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.08);
+  border:1.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);
+  padding:9px 18px;border-radius:9px;font-family:var(--fb);font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .18s;}
+.logout-btn:hover{background:var(--r500);border-color:var(--r500);color:white;}
+
+/* MAIN */
+.wrap{max-width:1400px;margin:0 auto;padding:40px 28px 80px;}
+
+/* PAGE HEADER */
+.page-hd{margin-bottom:32px;animation:fu .4s ease both;}
+.page-hd h1{font-family:var(--fh);font-size:36px;font-weight:700;color:var(--g900);letter-spacing:-.02em;}
+.page-hd h1 em{font-style:normal;color:var(--g500);}
+.page-hd p{font-size:16px;color:var(--s500);margin-top:7px;font-weight:500;}
+
+/* TOGGLE */
+.toggle-outer{display:flex;margin-bottom:28px;
+  background:var(--w);border:2px solid var(--g50);border-radius:12px;
+  padding:5px;width:fit-content;box-shadow:0 2px 8px rgba(6,78,59,.07);}
+.tog{padding:11px 28px;border:none;background:transparent;color:var(--s600);
+  font-family:var(--fb);font-size:15px;font-weight:700;border-radius:9px;
+  cursor:pointer;transition:all .16s;white-space:nowrap;}
+.tog:hover:not(.on){background:var(--g25);color:var(--g700);}
+.tog.on{background:linear-gradient(135deg,var(--g600),var(--g800));color:white;
+  box-shadow:0 3px 10px rgba(6,78,59,.3);}
+
+/* FILTER BAR */
+.fbar{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;
+  background:var(--w);border:2px solid var(--g50);border-radius:12px;
+  padding:18px 22px;margin-bottom:28px;box-shadow:0 2px 8px rgba(6,78,59,.06);}
+.fg{display:flex;flex-direction:column;gap:6px;}
+.fg label{font-size:12px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--g600);}
+.fg select,.fg input[type="date"]{padding:10px 14px;border:2px solid var(--g50);
+  background:var(--g25);border-radius:9px;color:var(--s800);
+  font-family:var(--fb);font-size:14px;font-weight:600;min-width:170px;
+  outline:none;transition:all .2s;}
+.fg select:focus,.fg input[type="date"]:focus{border-color:var(--g400);
+  box-shadow:0 0 0 3px rgba(16,185,129,.14);}
+.fg select option{background:var(--w);color:var(--s800);}
+.factions{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap;align-items:flex-end;}
+.btn{padding:10px 22px;border:none;border-radius:9px;font-family:var(--fb);
+  font-weight:700;font-size:14px;cursor:pointer;transition:all .18s;
+  display:inline-flex;align-items:center;gap:7px;border:2px solid transparent;}
+.btn:hover{transform:translateY(-2px);}
+.btn-gen{background:linear-gradient(135deg,var(--g500),var(--g700));color:white;
+  box-shadow:0 2px 8px rgba(6,78,59,.25);}
+.btn-gen:hover{background:linear-gradient(135deg,var(--g600),var(--g800));}
+.btn-clr{background:var(--w);color:var(--s600);border-color:var(--g50);}
+.btn-clr:hover{background:var(--g25);color:var(--g700);border-color:var(--g100);}
+.btn-csv{background:linear-gradient(135deg,var(--blue),#1d4ed8);color:white;}
+.btn-pdf{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:white;}
+
+/* LOADING */
+.loader{text-align:center;padding:80px 20px;}
+.spinner{width:48px;height:48px;margin:0 auto 16px;
+  border:4px solid var(--g100);border-top-color:var(--g500);
+  border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader p{color:var(--g700);font-size:16px;font-weight:600;}
+
+/* SECTION DIVIDER */
+.sec-div{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--g600);border-bottom:2px solid var(--g50);padding-bottom:8px;
+  margin-bottom:18px;margin-top:8px;}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:16px;margin-bottom:28px;}
+.sc{background:var(--w);border:2px solid var(--g50);border-top:4px solid var(--g500);
+  border-radius:12px;padding:22px 18px;text-align:center;
+  transition:all .2s;box-shadow:0 2px 8px rgba(6,78,59,.07);}
+.sc:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(6,78,59,.12);}
+.sc-icon{font-size:30px;margin-bottom:8px;}
+.sc-val{font-family:var(--fh);font-size:28px;font-weight:700;color:var(--g800);line-height:1.1;}
+.sc-val span{font-size:16px;color:var(--s500);}
+.sc-label{font-size:12px;color:var(--s500);font-weight:700;margin-top:6px;
+  text-transform:uppercase;letter-spacing:.06px;}
+
+/* CHARTS */
+.cg2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:22px;}
+.cc{background:var(--w);border:2px solid var(--g50);border-radius:12px;padding:22px;
+  transition:all .2s;box-shadow:0 2px 8px rgba(6,78,59,.07);}
+.cc:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(6,78,59,.1);}
+.cc.full{grid-column:1 / -1;}
+.cc-head{margin-bottom:14px;}
+.cc-head h3{font-size:16px;font-weight:800;color:var(--g900);}
+.cc-desc{font-size:13px;color:var(--s500);margin-top:4px;line-height:1.5;font-weight:500;}
+.cc-box{position:relative;height:240px;background:var(--g25);border-radius:10px;padding:12px;}
+.cc-box.md{height:260px;}
+
+/* TABLE */
+.tw{background:var(--w);border:2px solid var(--g50);border-radius:12px;
+  padding:22px;margin-bottom:24px;overflow-x:auto;
+  box-shadow:0 2px 8px rgba(6,78,59,.07);}
+.tw-head h3{font-size:17px;font-weight:800;color:var(--g900);}
+.tw-head p{font-size:13px;color:var(--s500);margin-top:4px;margin-bottom:16px;font-weight:500;}
+table{width:100%;border-collapse:collapse;}
+th{padding:12px 14px;text-align:left;color:var(--g700);font-size:12px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.07em;
+  border-bottom:2px solid var(--g50);background:var(--g25);}
+td{padding:12px 14px;color:var(--s700);font-size:14px;font-weight:500;
+  border-bottom:1px solid var(--g25);white-space:nowrap;}
+tbody tr{transition:background .15s;}
+tbody tr:hover{background:var(--g25);}
+tbody tr:last-child td{border-bottom:none;}
+
+/* BACK BUTTON */
+.back-btn{display:inline-flex;align-items:center;gap:8px;margin-top:8px;
+  background:var(--w);border:2px solid var(--g100);color:var(--g700);
+  padding:11px 22px;border-radius:9px;font-family:var(--fb);font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .16s;}
+.back-btn:hover{border-color:var(--g500);background:var(--g25);color:var(--g800);}
+
+.hidden{display:none!important;}
+@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--g25);}
+::-webkit-scrollbar-thumb{background:var(--g200);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--g400);}
+
+@media(max-width:900px){.cg2{grid-template-columns:1fr;}.cc.full{grid-column:1;}}
+@media(max-width:580px){.fbar{flex-direction:column;align-items:stretch;}.factions{margin-left:0;}}
+@media(max-width:768px){.topbar{padding:0 18px;}.wrap{padding:28px 16px 60px;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tl">
+    <div class="bi">📊</div>
+    <div><div class="bn">BookIt</div><div class="bst">Sports Management</div></div>
+    <div class="tdiv"></div>
+    <span class="portal-pill">📊 Reports & Analytics</span>
+  </div>
+  <div class="tr">
+    <div class="up">
+      <div class="ua" id="adminAvatar">A</div>
+      <div><div class="ue" id="adminEmail">Loading…</div><div class="ur">Sports Admin</div></div>
+    </div>
+    <button class="logout-btn" onclick="logoutNow()">↩ Logout</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="page-hd">
+    <h1>Reports &amp; <em>Analytics</em></h1>
+    <p>Deep-dive into bookings, feedback, and facility performance.</p>
+  </div>
+
+  <div class="toggle-outer">
+    <button class="tog on" id="togB" onclick="switchType('bookings')">📅 Booking Analytics</button>
+    <button class="tog"    id="togF" onclick="switchType('feedback')">💬 Feedback Analytics</button>
+  </div>
+
+  <div class="fbar">
+    <div class="fg"><label>From Date</label><input type="date" id="fromDate"></div>
+    <div class="fg"><label>To Date</label><input type="date" id="toDate"></div>
+    <div class="fg">
+      <label>Facility</label>
+      <select id="facSel">
+        <option value="">All Facilities</option>
+        <option value="cricket-nets">Cricket Nets</option>
+        <option value="Table Tennis">Table Tennis</option>
+        <option value="Outdoor Badminton Court">Outdoor Badminton</option>
+        <option value="Volleyball">Volleyball</option>
+        <option value="main-ground">Main Ground</option>
+        <option value="Basketball">Basketball</option>
+        <option value="Indoor Badminton Court">Indoor Badminton</option>
+        <option value="Carroms">Carroms</option>
+      </select>
+    </div>
+    <div class="factions">
+      <button class="btn btn-gen" onclick="generate()">📈 Generate</button>
+      <button class="btn btn-clr" onclick="clearF()">↺ Clear</button>
+      <button class="btn btn-csv" onclick="exportCSV()">⬇ Excel</button>
+      <button class="btn btn-pdf" onclick="exportPDF()">⬇ PDF</button>
+    </div>
+  </div>
+
+  <div id="loader" class="loader">
+    <div class="spinner"></div>
+    <p>Fetching &amp; crunching data…</p>
+  </div>
+
+  <div id="rBody" class="hidden"></div>
+
+  <button class="back-btn" onclick="location.href='sportsadmin.html'">← Back to Dashboard</button>
+</div>
+
+<script>
+/* ── init ── */
+firebase.initializeApp({
+    apiKey:"AIzaSyDYD768C9UY7PHq8BrQLN8paau3LmXAnFs",
+    authDomain:"bookit-56e35.firebaseapp.com",
+    projectId:"bookit-56e35",
+    storageBucket:"bookit-56e35.appspot.com",
+    messagingSenderId:"813441391899",
+    appId:"1:813441391899:web:d5bf9d33c6b81c983a87be"
+});
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+/* ── state ── */
+let bookings=[], feedback=[], charts={}, type='bookings', lastFiltered=[];
+
+/* ── auth ── */
+auth.onAuthStateChanged(async u => {
+    if (!u) return location.href="index.html";
+    document.getElementById("adminEmail").textContent = u.email;
+    const av = document.getElementById("adminAvatar");
+    if (av) av.textContent = u.email[0].toUpperCase();
+    await loadData();
+    generate();
+});
+function logoutNow(){ auth.signOut().then(()=> location.href="index.html"); }
+
+/* ── load ── */
+async function loadData(){
+    try {
+        const bS = await db.collection("bookings").where("facilityType","==","sport").get();
+        bookings=[];
+        bS.forEach(d=>{ const v=d.data(); if(v.status!=="cancelled") bookings.push(v); });
+
+        const fS = await db.collection("feedback").where("category","==","sports").get();
+        feedback=[];
+        fS.forEach(d=> feedback.push(d.data()));
+    } catch(e){ console.error(e); }
+}
+
+/* ── toggle ── */
+function switchType(t){
+    type=t;
+    document.getElementById("togB").classList.toggle("on", t==="bookings");
+    document.getElementById("togF").classList.toggle("on", t==="feedback");
+    const sel = document.getElementById("facSel");
+    sel.innerHTML = t==="bookings"
+        ? `<option value="">All Facilities</option>
+           <option value="cricket-nets">Cricket Nets</option>
+           <option value="Table Tennis">Table Tennis</option>
+           <option value="Outdoor Badminton Court">Outdoor Badminton</option>
+           <option value="Volleyball">Volleyball</option>
+           <option value="main-ground">Main Ground</option>
+           <option value="Basketball">Basketball</option>
+           <option value="Indoor Badminton Court">Indoor Badminton</option>
+           <option value="Carroms">Carroms</option>`
+        : `<option value="">All Facilities</option>
+           <option value="cricket-nets">Cricket Nets</option>
+           <option value="table-tennis">Table Tennis</option>
+           <option value="badminton-outdoor">Outdoor Badminton</option>
+           <option value="volleyball-court">Volleyball</option>
+           <option value="main-ground">Main Ground</option>
+           <option value="basketball-court">Basketball</option>
+           <option value="badminton-indoor">Indoor Badminton</option>
+           <option value="carroms">Carroms</option>`;
+    generate();
+}
+
+/* ── generate ── */
+async function generate(){
+    document.getElementById("loader").classList.remove("hidden");
+    document.getElementById("rBody").classList.add("hidden");
+    Object.values(charts).forEach(c=>c.destroy()); charts={};
+
+    await new Promise(r=>setTimeout(r,420));
+
+    const from = document.getElementById("fromDate").value;
+    const to   = document.getElementById("toDate").value;
+    const fac  = document.getElementById("facSel").value;
+
+    if(type==="bookings"){
+        let d=[...bookings];
+        if(from) d=d.filter(b=>b.date>=from);
+        if(to)   d=d.filter(b=>b.date<=to);
+        if(fac)  d=d.filter(b=>b.facility===fac);
+        lastFiltered=d;
+        renderBookings(d);
+    } else {
+        let d=[...feedback];
+        if(from){ const f=new Date(from); d=d.filter(x=>x.createdAt&&x.createdAt.toDate()>=f); }
+        if(to)  { const t=new Date(to); t.setHours(23,59,59); d=d.filter(x=>x.createdAt&&x.createdAt.toDate()<=t); }
+        if(fac)  d=d.filter(x=>x.facility===fac);
+        lastFiltered=d;
+        renderFeedback(d);
+    }
+
+    document.getElementById("loader").classList.add("hidden");
+    document.getElementById("rBody").classList.remove("hidden");
+}
+
+/* ════════════════════════════════════════════
+   BOOKING REPORT
+   ════════════════════════════════════════════ */
+function renderBookings(data){
+    const facC  = grp(data, b=>b.facility);
+    const dateC = grp(data, b=>b.date);
+    const dayN  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const dayC  = {Mon:0,Tue:0,Wed:0,Thu:0,Fri:0,Sat:0,Sun:0};
+    data.forEach(b=> dayC[dayN[new Date(b.date).getDay()]]++);
+
+    const hourC = {};
+    data.forEach(b=>{ if(!b.time) return; const h=b.time.split("-")[0].split(":")[0]; hourC[h+":00"]=(hourC[h+":00"]||0)+1; });
+    const sortH = Object.keys(hourC).sort();
+
+    const userC = grp(data, b=>b.email);
+    const topU  = Object.entries(userC).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+    const pop   = Object.entries(facC).sort((a,b)=>b[1]-a[1])[0];
+    const users = new Set(data.map(b=>b.email)).size;
+    const peakH = Object.entries(hourC).sort((a,b)=>b[1]-a[1])[0];
+    const peakD = Object.entries(dayC).sort((a,b)=>b[1]-a[1])[0];
+
+    const facList = [...new Set(data.map(b=>b.facility))];
+    let tRows = '';
+    facList.forEach(f=>{
+        const fd=data.filter(b=>b.facility===f);
+        const hc={}, dc={Mon:0,Tue:0,Wed:0,Thu:0,Fri:0,Sat:0,Sun:0};
+        fd.forEach(b=>{ if(b.time){const h=b.time.split("-")[0]; hc[h]=(hc[h]||0)+1;} dc[dayN[new Date(b.date).getDay()]]++; });
+        const ph=Object.entries(hc).sort((a,b)=>b[1]-a[1])[0];
+        const pd=Object.entries(dc).sort((a,b)=>b[1]-a[1])[0];
+        tRows+=`<tr><td>${f.replace(/-/g,' ')}</td><td>${fd.length}</td><td>${new Set(fd.map(b=>b.email)).size}</td><td>${ph?ph[0]:'—'}</td><td>${pd?pd[0]:'—'}</td></tr>`;
+    });
+
+    document.getElementById("rBody").innerHTML = `
+    <div class="stats-row">
+        <div class="sc"><div class="sc-icon">📅</div><div class="sc-val">${data.length}</div><div class="sc-label">Total Bookings</div></div>
+        <div class="sc"><div class="sc-icon">🏆</div><div class="sc-val" style="font-size:20px">${pop?pop[0].replace(/-/g,' '):'—'}</div><div class="sc-label">Most Popular</div></div>
+        <div class="sc"><div class="sc-icon">👥</div><div class="sc-val">${users}</div><div class="sc-label">Unique Users</div></div>
+        <div class="sc"><div class="sc-icon">⏰</div><div class="sc-val">${peakH?peakH[0]:'—'}</div><div class="sc-label">Peak Hour</div></div>
+        <div class="sc"><div class="sc-icon">📆</div><div class="sc-val">${peakD?peakD[0]:'—'}</div><div class="sc-label">Busiest Day</div></div>
+    </div>
+    <div class="sec-div">📈 Visual Breakdown</div>
+    <div class="cg2">
+        <div class="cc"><div class="cc-head"><h3>🏟️ Bookings by Facility</h3><p class="cc-desc">Total bookings per facility. Taller bars = more popular courts.</p></div><div class="cc-box md"><canvas id="cFac"></canvas></div></div>
+        <div class="cc"><div class="cc-head"><h3>📈 Bookings Over Time</h3><p class="cc-desc">Daily count of new bookings plotted on a timeline.</p></div><div class="cc-box md"><canvas id="cDate"></canvas></div></div>
+    </div>
+    <div class="cg2">
+        <div class="cc"><div class="cc-head"><h3>📆 Bookings by Day of Week</h3><p class="cc-desc">Which weekdays get the most bookings?</p></div><div class="cc-box md"><canvas id="cDay"></canvas></div></div>
+        <div class="cc"><div class="cc-head"><h3>⏰ Peak Hour Analysis</h3><p class="cc-desc">Hourly breakdown across all facilities.</p></div><div class="cc-box md"><canvas id="cHour"></canvas></div></div>
+    </div>
+    <div class="cg2">
+        <div class="cc full"><div class="cc-head"><h3>👤 Top 6 Booking Users</h3><p class="cc-desc">Most active users ranked by number of bookings.</p></div><div class="cc-box"><canvas id="cUser"></canvas></div></div>
+    </div>
+    <div class="sec-div">📋 Summary Table</div>
+    <div class="tw"><div class="tw-head"><h3>Facility Booking Breakdown</h3><p>Per-facility stats: total bookings, unique users, peak hour, and busiest weekday.</p></div>
+    <table><thead><tr><th>Facility</th><th>Bookings</th><th>Users</th><th>Peak Hour</th><th>Busiest Day</th></tr></thead><tbody>${tRows}</tbody></table></div>`;
+
+    const pal=['rgba(5,150,105,.85)','rgba(4,120,87,.85)','rgba(52,211,153,.85)','rgba(16,185,129,.85)','rgba(6,78,59,.85)','rgba(167,243,208,.85)','rgba(110,231,183,.85)','rgba(2,132,199,.85)'];
+    charts.cFac  = barC('cFac',  Object.keys(facC),  Object.values(facC), pal);
+    charts.cDate = lineC('cDate', Object.keys(dateC).sort(), Object.keys(dateC).sort().map(d=>dateC[d]), '#059669','rgba(5,150,105,.12)');
+    charts.cDay  = barC('cDay',  Object.keys(dayC),  Object.values(dayC), ['rgba(4,120,87,.85)']);
+    charts.cHour = lineC('cHour', sortH, sortH.map(h=>hourC[h]), '#10b981','rgba(16,185,129,.12)');
+    charts.cUser = hbarC('cUser', topU.map(u=>u[0].split('@')[0]), topU.map(u=>u[1]), 'rgba(5,150,105,.85)');
+}
+
+/* ════════════════════════════════════════════
+   FEEDBACK REPORT
+   ════════════════════════════════════════════ */
+function renderFeedback(data){
+    const cats = ["Cleanliness","Ease of Booking","Equipment Availability","Ground / Court Quality","Lighting Quality","Safety Measures","Staff Support","Overall Experience"];
+    const facC  = grp(data, f=>f.facility);
+    const facList = [...new Set(data.map(f=>f.facility))];
+
+    const catAvg = {};
+    cats.forEach(c=>{ const v=data.map(f=>f.ratings?.[c]||0).filter(x=>x>0); catAvg[c]=v.length?(v.reduce((a,b)=>a+b,0)/v.length):0; });
+
+    const facAvg = {};
+    facList.forEach(fac=>{
+        const sub=data.filter(f=>f.facility===fac);
+        const v=sub.map(f=>f.ratings?.["Overall Experience"]||0).filter(x=>x>0);
+        facAvg[fac]=v.length?(v.reduce((a,b)=>a+b,0)/v.length):0;
+    });
+    const facRank = Object.entries(facAvg).sort((a,b)=>b[1]-a[1]);
+
+    const dist={1:0,2:0,3:0,4:0,5:0};
+    data.forEach(f=>{ const r=Math.round(f.ratings?.["Overall Experience"]||0); if(r>=1&&r<=5) dist[r]++; });
+
+    const trend={};
+    data.forEach(f=>{ if(!f.createdAt) return; const d=f.createdAt.toDate().toLocaleDateString(); trend[d]=(trend[d]||0)+1; });
+    const tDates = Object.keys(trend).sort((a,b)=>new Date(a)-new Date(b));
+
+    const total = data.length;
+    const avg   = total ? (data.reduce((s,f)=>s+(f.ratings?.["Overall Experience"]||0),0)/total).toFixed(1) : 0;
+    const low   = data.filter(f=>(f.ratings?.["Overall Experience"]||0)<=2).length;
+    const top   = facRank[0];
+    const lowest= cats.reduce((a,c)=> catAvg[c]<(catAvg[a]||6) ? c : a, cats[0]);
+
+    let tRows='';
+    facList.forEach(fac=>{
+        const sub=data.filter(f=>f.facility===fac);
+        const a=c=>{ const v=sub.map(f=>f.ratings?.[c]||0).filter(x=>x>0); return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'—'; };
+        tRows+=`<tr><td>${fac.replace(/-/g,' ')}</td><td>${sub.length}</td><td>${a("Overall Experience")}</td><td>${a("Cleanliness")}</td><td>${a("Equipment Availability")}</td><td>${a("Ground / Court Quality")}</td><td>${a("Lighting Quality")}</td><td>${a("Safety Measures")}</td><td>${a("Staff Support")}</td></tr>`;
+    });
+
+    document.getElementById("rBody").innerHTML = `
+    <div class="stats-row">
+        <div class="sc"><div class="sc-icon">💬</div><div class="sc-val">${total}</div><div class="sc-label">Total Feedback</div></div>
+        <div class="sc"><div class="sc-icon">⭐</div><div class="sc-val">${avg}<span>/5</span></div><div class="sc-label">Avg Rating</div></div>
+        <div class="sc"><div class="sc-icon">🏆</div><div class="sc-val" style="font-size:18px">${top?top[0].replace(/-/g,' '):'—'}</div><div class="sc-label">Top Rated</div></div>
+        <div class="sc"><div class="sc-icon">⚠️</div><div class="sc-val">${low}</div><div class="sc-label">Low Ratings ≤2</div></div>
+        <div class="sc"><div class="sc-icon">📌</div><div class="sc-val" style="font-size:15px">${lowest}</div><div class="sc-label">Needs Attention</div></div>
+    </div>
+    <div class="sec-div">📈 Visual Breakdown</div>
+    <div class="cg2">
+        <div class="cc"><div class="cc-head"><h3>🏟️ Feedback by Facility</h3><p class="cc-desc">Number of feedback entries per facility.</p></div><div class="cc-box md"><canvas id="fFac"></canvas></div></div>
+        <div class="cc"><div class="cc-head"><h3>🎯 Rating Distribution</h3><p class="cc-desc">How Overall Experience ratings are spread from 1 to 5 stars.</p></div><div class="cc-box md"><canvas id="fDist"></canvas></div></div>
+    </div>
+    <div class="cg2">
+        <div class="cc"><div class="cc-head"><h3>📡 Rating Categories (Radar)</h3><p class="cc-desc">Average score across all 8 dimensions. Areas closer to the center need improvement.</p></div><div class="cc-box md"><canvas id="fRadar"></canvas></div></div>
+        <div class="cc"><div class="cc-head"><h3>🏅 Facility Rankings</h3><p class="cc-desc">Facilities ranked by Overall Experience average.</p></div><div class="cc-box md"><canvas id="fRank"></canvas></div></div>
+    </div>
+    <div class="cg2">
+        <div class="cc full"><div class="cc-head"><h3>📈 Feedback Trend Over Time</h3><p class="cc-desc">Daily feedback volume over time.</p></div><div class="cc-box"><canvas id="fTrend"></canvas></div></div>
+    </div>
+    <div class="sec-div">📋 Summary Table</div>
+    <div class="tw"><div class="tw-head"><h3>Facility Feedback Breakdown</h3><p>Average scores per facility across every rating category.</p></div>
+    <table><thead><tr><th>Facility</th><th>Count</th><th>Overall</th><th>Clean</th><th>Equipment</th><th>Ground</th><th>Lighting</th><th>Safety</th><th>Staff</th></tr></thead><tbody>${tRows}</tbody></table></div>`;
+
+    const pal=['rgba(5,150,105,.85)','rgba(4,120,87,.85)','rgba(52,211,153,.85)','rgba(16,185,129,.85)','rgba(6,78,59,.85)','rgba(167,243,208,.85)','rgba(110,231,183,.85)','rgba(2,132,199,.85)'];
+    charts.fFac = barC('fFac', Object.keys(facC), Object.values(facC), pal);
+
+    charts.fDist = new Chart(document.getElementById('fDist'),{
+        type:'doughnut',
+        data:{ labels:['1 ★','2 ★','3 ★','4 ★','5 ★'], datasets:[{ data:Object.values(dist), backgroundColor:['#ef4444','#f97316','#f59e0b','#10b981','#059669'], borderColor:'rgba(255,255,255,.3)', borderWidth:3 }]},
+        options:{ responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{ position:'bottom', labels:{ color:getComputedStyle(document.documentElement).getPropertyValue('--s700').trim()||'#334155', padding:14, font:{size:13,weight:'600'} } } }
+        }
+    });
+
+    charts.fRadar = new Chart(document.getElementById('fRadar'),{
+        type:'radar',
+        data:{ labels:cats, datasets:[{ label:'Avg', data:cats.map(c=>catAvg[c]),
+            backgroundColor:'rgba(5,150,105,.12)', borderColor:'rgba(5,150,105,1)',
+            borderWidth:2.5, pointBackgroundColor:'rgba(5,150,105,1)', pointRadius:4 }]},
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+            scales:{ r:{ beginAtZero:true, max:5,
+                ticks:{color:'#475569', stepSize:1, backdropColor:'transparent'},
+                grid:{color:'rgba(6,78,59,.1)'},
+                pointLabels:{color:'#334155', font:{size:11, weight:'600'}} } } }
+    });
+
+    charts.fRank  = hbarC('fRank', facRank.map(e=>e[0].replace(/-/g,' ')), facRank.map(e=>+e[1].toFixed(2)), null, 5);
+    charts.fTrend = lineC('fTrend', tDates, tDates.map(d=>trend[d]), '#059669','rgba(5,150,105,.1)');
+}
+
+/* ════════════════════════════════════════════
+   CHART HELPERS
+   ════════════════════════════════════════════ */
+const sc2 = ()=>({
+    y:{ beginAtZero:true, ticks:{color:'#475569'}, grid:{color:'rgba(6,78,59,.1)'} },
+    x:{ ticks:{color:'#475569', maxRotation:40}, grid:{color:'rgba(6,78,59,.07)'} }
+});
+
+function barC(id, labels, vals, colors){
+    return new Chart(document.getElementById(id),{
+        type:'bar',
+        data:{ labels, datasets:[{ data:vals, backgroundColor: colors.length===1?colors[0]:labels.map((_,i)=>colors[i%colors.length]), borderRadius:5, borderSkipped:false }]},
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:sc2() }
+    });
+}
+function lineC(id, labels, vals, border, bg){
+    return new Chart(document.getElementById(id),{
+        type:'line',
+        data:{ labels, datasets:[{ data:vals, borderColor:border, backgroundColor:bg, borderWidth:2.5, fill:true, tension:.38, pointRadius:2.5, pointBackgroundColor:border }]},
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:sc2() }
+    });
+}
+function hbarC(id, labels, vals, color, max){
+    const rPal=['rgba(5,150,105,.85)','rgba(4,120,87,.85)','rgba(16,185,129,.85)','rgba(52,211,153,.85)','rgba(6,78,59,.85)','rgba(2,132,199,.85)'];
+    return new Chart(document.getElementById(id),{
+        type:'bar',
+        data:{ labels, datasets:[{ data:vals, backgroundColor:color||labels.map((_,i)=>rPal[i%rPal.length]), borderRadius:5, borderSkipped:false }]},
+        options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+            scales:{ x:{ beginAtZero:true, max:max||undefined, ticks:{color:'#475569'}, grid:{color:'rgba(6,78,59,.1)'} }, y:{ ticks:{color:'#475569'}, grid:{color:'rgba(6,78,59,.07)'} } } }
+    });
+}
+
+function grp(arr,fn){ const m={}; arr.forEach(i=>{ const k=fn(i); m[k]=(m[k]||0)+1; }); return m; }
+
+/* ── EXPORT CSV ── */
+function exportCSV(){
+    let csv='', name='';
+    if(type==='bookings'){
+        name='Booking-Report';
+        csv+='Date,Facility,Email,Time,Purpose\n';
+        lastFiltered.forEach(b=>{
+            const dateStr = b.date || '';
+            const facilityStr = (b.facility || '').replace(/,/g, ';');
+            const emailStr = (b.email || '').replace(/,/g, ';');
+            const timeStr = (b.time || '').replace(/,/g, ';');
+            const purposeStr = (b.purpose || '').replace(/,/g, ';').replace(/\n/g, ' ');
+            csv += `${dateStr},${facilityStr},${emailStr},${timeStr},${purposeStr}\n`;
+        });
+    } else {
+        name='Feedback-Report';
+        csv+='Date,Facility,User Email,Overall,Cleanliness,Ease of Booking,Equipment Availability,Ground Quality,Lighting,Safety,Staff Support,Comment\n';
+        lastFiltered.forEach(f=>{
+            const d=f.createdAt?f.createdAt.toDate().toLocaleDateString('en-CA'):'';
+            const r=f.ratings||{};
+            const facilityStr = (f.facility || '').replace(/,/g, ';');
+            const emailStr = (f.userEmail || '').replace(/,/g, ';');
+            const commentStr = (f.comment || '').replace(/,/g, ';').replace(/\n/g, ' ');
+            csv += `${d},${facilityStr},${emailStr},${r["Overall Experience"]||''},${r["Cleanliness"]||''},${r["Ease of Booking"]||''},${r["Equipment Availability"]||''},${r["Ground / Court Quality"]||''},${r["Lighting Quality"]||''},${r["Safety Measures"]||''},${r["Staff Support"]||''},${commentStr}\n`;
+        });
+    }
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=name+'-'+new Date().toISOString().split('T')[0]+'.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+}
+
+/* ── EXPORT PDF ── */
+function exportPDF(){
+    const body = document.getElementById("rBody");
+    if(!body || body.classList.contains("hidden")){ 
+        alert("Please generate a report first!"); 
+        return; 
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    let yPos = margin;
+
+    doc.setFontSize(24);
+    doc.setFont(undefined, 'bold');
+    const title = type === 'bookings' ? 'Booking Analytics Report' : 'Feedback Analytics Report';
+    doc.text(title, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 15;
+
+    const fromDate = document.getElementById("fromDate").value;
+    const toDate = document.getElementById("toDate").value;
+    if (fromDate && toDate) {
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Period: ${fromDate} to ${toDate}`, pageWidth / 2, yPos, { align: 'center' });
+        yPos += 10;
+    }
+
+    const stats = document.querySelectorAll('.sc');
+    if (stats.length > 0) {
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.text('Summary Statistics', margin, yPos);
+        yPos += 8;
+
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        
+        stats.forEach((stat, idx) => {
+            const label = stat.querySelector('.sc-label').textContent;
+            const value = stat.querySelector('.sc-val').textContent;
+            
+            if (yPos > pageHeight - 20) {
+                doc.addPage();
+                yPos = margin;
+            }
+            
+            doc.text(`${label}: ${value}`, margin + 5, yPos);
+            yPos += 6;
+        });
+        
+        yPos += 5;
+    }
+
+    const canvases = document.querySelectorAll('.cc canvas');
+    const chartTitles = document.querySelectorAll('.cc-head h3');
+    
+    canvases.forEach((canvas, idx) => {
+        if (yPos > pageHeight - 80) {
+            doc.addPage();
+            yPos = margin;
+        }
+
+        if (chartTitles[idx]) {
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text(chartTitles[idx].textContent, margin, yPos);
+            yPos += 8;
+        }
+
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - (margin * 2);
+        const imgHeight = 60;
+        
+        doc.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight);
+        yPos += imgHeight + 10;
+    });
+
+    const table = document.querySelector('.tw table');
+    if (table) {
+        if (yPos > pageHeight - 60) {
+            doc.addPage();
+            yPos = margin;
+        }
+
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('Detailed Breakdown', margin, yPos);
+        yPos += 10;
+
+        const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
+        const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => 
+            Array.from(tr.querySelectorAll('td')).map(td => td.textContent)
+        );
+
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+
+        let xPos = margin;
+        const colWidth = (pageWidth - (margin * 2)) / headers.length;
+        
+        doc.setFont(undefined, 'bold');
+        headers.forEach((header, i) => {
+            doc.text(header, xPos, yPos, { maxWidth: colWidth - 2 });
+            xPos += colWidth;
+        });
+        yPos += 6;
+
+        doc.setFont(undefined, 'normal');
+        rows.forEach(row => {
+            if (yPos > pageHeight - 15) {
+                doc.addPage();
+                yPos = margin;
+            }
+
+            xPos = margin;
+            row.forEach(cell => {
+                doc.text(String(cell), xPos, yPos, { maxWidth: colWidth - 2 });
+                xPos += colWidth;
+            });
+            yPos += 6;
+        });
+    }
+
+    const fileName = `${type === 'bookings' ? 'Booking' : 'Feedback'}-Report-${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+}
+
+function clearF(){
+    document.getElementById("fromDate").value='';
+    document.getElementById("toDate").value='';
+    document.getElementById("facSel").value='';
+    generate();
+}
+</script>
+</body>
+</html>
