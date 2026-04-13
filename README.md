@@ -145,4 +145,5 @@ Then open `http://localhost:5000` in your browser.
 
 ## 👤 Author
 **Justin K Cherian**  
-[GitHub](https://github.com/Justin-K-Cherian) · [Gmail](mailto:justincherian2005@gmail.com)
+[GitHub](https://github.com/Justin-K-Cherian) · [Gmail](mailto:justincherian2005@gmail.com)  · [LinkedIn](https://www.linkedin.com/in/justin-k-cherian-137343291/)
+
