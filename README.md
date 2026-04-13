@@ -15,7 +15,7 @@ A web-based platform for managing institutional facility bookings — seminar ha
 ### 👤 User View
 | Home | Venue Page |
 |---|---|
-| ![Home](https://github.com/user-attachments/assets/518f8645-c2be-4c38-97ba-61504ef81664) | ![Venue](https://github.com/user-attachments/assets/8a68f745-c78f-4de0-836b-810c1d31640e) |
+| ![Home](https://github.com/user-attachments/assets/91427601-fad7-4693-854c-612534168465) | ![Venue](https://github.com/user-attachments/assets/8a68f745-c78f-4de0-836b-810c1d31640e) |
 
 | Sports Page | Booking Page |
 |---|---|
@@ -23,7 +23,7 @@ A web-based platform for managing institutional facility bookings — seminar ha
 
 | Profile | Feedback |
 |---|---|
-| ![Profile](https://github.com/user-attachments/assets/2e0e2358-a9a2-46c6-9cff-25cfe38477d5) | ![Feedback](https://github.com/user-attachments/assets/862e1815-22d3-4ff9-a74d-d14040169c59) |
+| ![Profile](https://github.com/user-attachments/assets/72fe3f33-db20-4109-b147-12dab4e6ba7a) | ![Feedback](https://github.com/user-attachments/assets/862e1815-22d3-4ff9-a74d-d14040169c59) |
 
 | Chatbot | Team Finder |
 |---|---|
